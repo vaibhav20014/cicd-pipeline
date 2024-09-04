@@ -3,65 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
-        }
-        .container h2 {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .container input[type="text"],
-        .container input[type="email"],
-        .container input[type="password"],
-        .container input[type="submit"] {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-        }
-        .container input[type="submit"] {
-            background-color: #28a745;
-            color: white;
-            cursor: pointer;
-        }
-        .container input[type="submit"]:hover {
-            background-color: #218838;
-        }
-        .login-link {
-            display: block;
-            text-align: center;
-            margin-top: 10px;
-        }
-    </style>
+    <title>Sign In/Sign Up</title>
 </head>
 <body>
-    <div class="container">
-        <h2>Sign In</h2>
-        <form action="/signup" method="POST">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <input type="password" name="confirm_password" placeholder="Confirm Password" required>
-            <input type="submit" value="Signup">
-        </form>
-        <a class="login-link" href="LoginPage.html">Already have an account? Login</a>
-    </div>
+    <form id="authForm">
+        <div>
+          <label for="email">Email</label>
+          <input type="email" id="email" required>
+        </div>
+        <div>
+          <label for="password">Password</label>
+          <input type="password" id="password" required>
+        </div>
+        <button type="button" id="signInButton">Sign In</button>
+        <button type="button" id="signUpButton">Sign Up</button>
+    </form>
+    <script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-auth.js"></script>
+    <!-- Firebase and JavaScript SDK -->
+    <script>
+        // Your Firebase configuration
+        var firebaseConfig = {
+            apiKey: "AIzaSyCfqoocGvPWyFANxaV0JBdCyaNkeXZY46s",
+            authDomain: "YOUR_AUTH_DOMAIN", // Replace with your Firebase Auth domain
+            projectId: "devopsauth-ff33d",
+            storageBucket: "YOUR_STORAGE_BUCKET", // Replace with your Firebase Storage bucket
+            messagingSenderId: "68062083313",
+            appId: "1:68062083313:web:7d4f34d585be2ca22ed150",
+            measurementId: "YOUR_MEASUREMENT_ID" // Replace with your Firebase Measurement ID
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Get references to the email and password inputs, and the sign in and sign up buttons
+        var emailInput = document.getElementById("email");
+        var passwordInput = document.getElementById("password");
+        var signInButton = document.getElementById("signInButton");
+        var signUpButton = document.getElementById("signUpButton");
+
+        // Sign In Button Click Event
+        signInButton.addEventListener("click", function() {
+            var email = emailInput.value;
+            var password = passwordInput.value;
+            
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then(function(userCredential) {
+                    // Redirect the user to test.html on successful sign-in
+                    window.location.href = "test.html";
+                })
+                .catch(function(error) {
+                    // Show an error message
+                    alert("Sign In Error: " + error.message);
+                });
+        });
+
+        // Sign Up Button Click Event
+        signUpButton.addEventListener("click", function() {
+            var email = emailInput.value;
+            var password = passwordInput.value;
+            
+            firebase.auth().createUserWithEmailAndPassword(email, password)
+                .then(function(userCredential) {
+                    // Redirect the user to test.html on successful sign-up
+                    window.location.href = "test.html";
+                })
+                .catch(function(error) {
+                    // Show an error message
+                    alert("Sign Up Error: " + error.message);
+                });
+        });
+    </script>
 </body>
 </html>
