@@ -1,0 +1,80 @@
+/* General styles */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    
+}
+
+
+.login-box {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    height: 60vh;
+    width: 50vh;
+    justify-content: space-evenly;
+    align-content: center;
+    flex-direction: column;
+}
+
+.image-container {
+    
+    margin-right: 20px;
+}
+
+.image-container img {
+    max-width: 150px;
+    height: auto;
+    /* display: block; */
+}
+
+.form-container {
+    max-width: 300px;
+    width: 100%;
+}
+
+/* h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+} */
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+#signInButton {
+    background-color: #007bff;
+    color: #fff;
+}
+
+#signUpButton {
+    background-color: #28a745;
+    color: #fff;
+}

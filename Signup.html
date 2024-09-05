@@ -3,31 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In/Sign Up</title>
+    <title>Sign In</title>
+    <link rel="stylesheet" href="/devopstest/Singnup.css">
 </head>
 <body>
-    <form id="authForm">
-        <div>
-          <label for="email">Email</label>
-          <input type="email" id="email" required>
+    <div class="container">
+        <div class="login-box">
+            <div class="image-container">
+                <img src="/Media/Logo.png" alt="Login Image"> 
+            </div>
+            <h2>Sign In</h2>  
+          <form id="authForm">
+        <div class="input-group">
+            <input type="email" id="email" placeholder="Enter your Email" required>
         </div>
-        <div>
-          <label for="password">Password</label>
-          <input type="password" id="password" required>
+
+        <div class="input-group">
+            <input type="password" id="password" placeholder="Enter your Password" required>
         </div>
         <button type="button" id="signInButton">Sign In</button>
         <button type="button" id="signUpButton">Sign Up</button>
-    </form>
+           </form>
+        </div>
+    </div>
     <script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-auth.js"></script>
     <script src="/config.js"></script>
 
-    <!-- Firebase and JavaScript SDK -->
+    
     <script>
-        // Your Firebase configuration
+        
         const firebaseConfig = window.firebaseConfig;
-
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
 
         // Get references to the email and password inputs, and the sign in and sign up buttons
