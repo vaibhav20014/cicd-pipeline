@@ -5,7 +5,7 @@ FROM nginx:alpine
 WORKDIR /usr/share/nginx/html
 
 # Copy the HTML and CSS files into the container
-COPY cicd-pipeline
+COPY . .
 
 # Expose port 8000
 EXPOSE 8000
