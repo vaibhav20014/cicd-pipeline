@@ -11,7 +11,7 @@ COPY nginx.conf /etc/nginx/conf.d/
 COPY . /usr/share/nginx/html
 
 # Expose port 80 to serve the website
-EXPOSE 8000
+EXPOSE 80
 
 # Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
