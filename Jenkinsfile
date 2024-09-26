@@ -14,9 +14,15 @@ pipeline {
         }
         stage('Run Docker Container') {
             steps {
-                sh 'docker stop nginx-container || true'
-                sh 'docker rm nginx-container || true'
-                sh 'docker run -d --name nginx-container -p 80:80 nginx-server'
+                script {
+                    def containerId = sh(script: 'docker ps --filter "status=running" --format "{{.ID}}"', returnStdout: true).trim()
+                    
+                    if (containerId) {
+                        sh "docker cp /var/lib/jenkins/workspace/devops-project/. \"$containerId\":/usr/share/nginx/html"
+                    } else {
+                        sh 'docker run -d --name nginx-container -p 8000:80 nginx-server'
+                    }
+                }
             }
         }
     }
