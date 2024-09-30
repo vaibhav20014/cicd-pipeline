@@ -7,7 +7,7 @@ pipeline {
                 git (
                     url: 'https://github.com/vaibhav20014/cicd-pipeline.git',
                     branch: 'main',
-                    credentialsId: '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' // Replace with your actual credential ID
+                    credentialsId: '951f08f7-7683-42c7-b306-907e00f64375' // Replace with your actual credential ID
                 )
             }
         }
