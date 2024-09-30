@@ -5,6 +5,7 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 git url: 'https://github.com/vaibhav20014/cicd-pipeline.git', branch: 'main'
+                credentialsId: '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'
             }
         }
         stage('Build Docker Image') {
