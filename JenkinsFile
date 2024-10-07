@@ -25,10 +25,10 @@ pipeline {
                     withSonarQubeEnv(SONARQUBE_SERVER) {
                         sh """
                             ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=${PROJECT_KEY} \
+                            -Dsonar.projectKey=${cicd-pipeline} \
                             -Dsonar.sources=. \
                             -Dsonar.host.url=http://13.235.14.58:9000 \
-                            -Dsonar.login=${SONAR_TOKEN}
+                            -Dsonar.login=${Sonar}
                         """
                     }
                 }
