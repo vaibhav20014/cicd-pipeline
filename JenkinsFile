@@ -1,6 +1,11 @@
 pipeline {
     agent any
     
+    environment {
+        // Define the SonarQube server credentials and URL
+        SONARQUBE_SERVER = '93992cba-bd0e-4ffa-a26e-fc2f634b1d0c'  // Replace with your SonarQube server ID in Jenkins settings
+    }
+    
     stages {
         stage('Clone Repository') {
             steps {
@@ -11,11 +16,25 @@ pipeline {
                 )
             }
         }
+
+        stage('SonarQube Scan') {
+            steps {
+                script {
+                    // Running SonarQube Scanner for code analysis
+                    def scannerHome = tool 'SonarQubeScanner' // Ensure that SonarQube Scanner is installed in Jenkins
+                    withSonarQubeEnv(SONARQUBE_SERVER) {
+                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=your-project-key -Dsonar.sources=."
+                    }
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t nginx-server .'
             }
         }
+
         stage('Run Docker Container') {
             steps {
                 sh 'docker stop nginx-container || true'
@@ -23,18 +42,19 @@ pipeline {
                 sh 'docker run -d --name nginx-container -p 8000:80 nginx-server'
             }
         }
+
         stage('Copy Files to Running Container') {
             steps {
                 script {
                     def container_id = sh(script: 'docker ps --filter "status=running" --format "{{.ID}}"', returnStdout: true).trim()
                     if (container_id) {
-                        // Use the correct path
                         sh "docker cp . ${container_id}:/usr/share/nginx/html"
                     }
                 }
             }
         }
     }
+    
     post {
         always {
             cleanWs() // Clean workspace after build
