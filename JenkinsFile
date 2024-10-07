@@ -21,14 +21,14 @@ pipeline {
         stage('SonarQube Scan') {
             steps {
                 script {
-                    def scannerHome = tool 'SonarQubeScanner' // Use the scanner tool you set up
+                    def scannerHome = tool 'Sonar' // Use the scanner tool you set up
                     withSonarQubeEnv(SONARQUBE_SERVER) {
                         sh """
                             ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=${PROJECT_KEY} \ // Corrected to use PROJECT_KEY variable
+                            -Dsonar.projectKey=${cicd-pipeline} \ // Corrected to use PROJECT_KEY variable
                             -Dsonar.sources=. \ // Changed to use current directory for sources
                             -Dsonar.host.url=http://13.235.14.58:9000 \
-                            -Dsonar.login=${SONAR_TOKEN} // Corrected variable usage
+                            -Dsonar.login=${Sonar} // Corrected variable usage
                         """
                     }
                 }
