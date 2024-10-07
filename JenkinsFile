@@ -3,7 +3,7 @@ pipeline {
     
     environment {
         // Define the SonarQube server credentials and URL
-        SONARQUBE_SERVER = '93992cba-bd0e-4ffa-a26e-fc2f634b1d0c'  // Replace with your SonarQube server ID in Jenkins settings
+        SONARQUBE_SERVER = 'Sonar'  // Replace with your SonarQube server ID in Jenkins settings
     }
     
     stages {
