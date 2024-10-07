@@ -4,7 +4,7 @@ pipeline {
     environment {
         SONARQUBE_SERVER = 'Sonar' // Your SonarQube server name from Jenkins configuration
         PROJECT_KEY = 'cicd-pipeline'            // Unique project key for your SonarQube project
-        SONAR_TOKEN = credentials('sqa_44b600f51b780257fe4a0c37a8e0c1c1cc8a476d') // Replace with the ID of your Jenkins secret with the Sonar token
+        SONAR_TOKEN = credentials('Sonar') // Replace with the ID of your Jenkins secret with the Sonar token
     }
 
     stages {
