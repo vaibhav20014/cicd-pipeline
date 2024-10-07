@@ -1,27 +1,36 @@
 pipeline {
     agent any
-    
-   
-    
+
+    environment {
+        SONARQUBE_SERVER = 'Sonar' // Your SonarQube server name from Jenkins configuration
+        PROJECT_KEY = 'your-unique-project-key'  // Replace this with a unique key for your project
+    }
+
     stages {
         stage('Clone Repository') {
             steps {
                 git (
                     url: 'https://github.com/vaibhav20014/cicd-pipeline.git',
                     branch: 'main',
-                    credentialsId: '951f08f7-7683-42c7-b306-907e00f64375' // Replace with your actual credential ID
+                    credentialsId: '951f08f7-7683-42c7-b306-907e00f64375'
                 )
             }
         }
 
-       stage('Run Sonarqube') {
-            environment {
-                scannerHome = tool 'Sonar';
-            }
+        stage('SonarQube Scan') {
             steps {
-              withSonarQubeEnv(credentialsId: 'Sonar', installationName: 'Sonar') {
-                sh "${scannerHome}/bin/sonar-scanner"
-              }
+                script {
+                    def scannerHome = tool 'Sonar' // Use the scanner tool you set up
+                    withSonarQubeEnv(SONARQUBE_SERVER) {
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=${PROJECT_KEY} \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=http://13.235.14.58:9000 \
+                            -Dsonar.login=Sonar
+                        """
+                    }
+                }
             }
         }
 
@@ -50,10 +59,10 @@ pipeline {
             }
         }
     }
-    
+
     post {
         always {
-            cleanWs() // Clean workspace after build
+            cleanWs()
         }
     }
 }
