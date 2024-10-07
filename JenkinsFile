@@ -1,10 +1,7 @@
 pipeline {
     agent any
     
-    environment {
-        // Define the SonarQube server credentials and URL
-        SONARQUBE_SERVER = 'Sonar'  // Replace with your SonarQube server ID in Jenkins settings
-    }
+   
     
     stages {
         stage('Clone Repository') {
@@ -17,15 +14,14 @@ pipeline {
             }
         }
 
-        stage('SonarQube Scan') {
+       stage('Run Sonarqube') {
+            environment {
+                scannerHome = tool 'Sonar';
+            }
             steps {
-                script {
-                    // Running SonarQube Scanner for code analysis
-                    def scannerHome = tool 'SonarQubeScanner' // Ensure that SonarQube Scanner is installed in Jenkins
-                    withSonarQubeEnv(SONARQUBE_SERVER) {
-                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=your-project-key -Dsonar.sources=."
-                    }
-                }
+              withSonarQubeEnv(credentialsId: 'Sonar', installationName: 'Sonar') {
+                sh "${scannerHome}/bin/sonar-scanner"
+              }
             }
         }
 
