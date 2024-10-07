@@ -26,7 +26,7 @@ pipeline {
                         sh """
                             ${scannerHome}/bin/sonar-scanner \
                             -Dsonar.projectKey=${cicd-pipeline} \
-                            -Dsonar.sources=. \
+                            -Dsonar.sources= Sonar
                             -Dsonar.host.url=http://13.235.14.58:9000 \
                             -Dsonar.login=${Sonar}
                         """
