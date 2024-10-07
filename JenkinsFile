@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         SONARQUBE_SERVER = 'Sonar' // Your SonarQube server name from Jenkins configuration
-        PROJECT_KEY = 'cicd-pipeline'            // Unique project key for your SonarQube project
+        PROJECT_KEY = 'cicd-pipeline' // Unique project key for your SonarQube project
         SONAR_TOKEN = credentials('Sonar') // Replace with the ID of your Jenkins secret with the Sonar token
     }
 
@@ -25,10 +25,10 @@ pipeline {
                     withSonarQubeEnv(SONARQUBE_SERVER) {
                         sh """
                             ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=${cicd-pipeline} \
-                            -Dsonar.sources= Sonar
+                            -Dsonar.projectKey=${PROJECT_KEY} \ // Corrected to use PROJECT_KEY variable
+                            -Dsonar.sources=. \ // Changed to use current directory for sources
                             -Dsonar.host.url=http://13.235.14.58:9000 \
-                            -Dsonar.login=${Sonar}
+                            -Dsonar.login=${SONAR_TOKEN} // Corrected variable usage
                         """
                     }
                 }
@@ -52,7 +52,7 @@ pipeline {
         stage('Copy Files to Running Container') {
             steps {
                 script {
-                    def container_id = sh(script: 'docker ps --filter "status=running" --format "{{.ID}}"', returnStdout: true).trim()
+                    def container_id = sh(script: 'docker ps --filter "name=nginx-container" --format "{{.ID}}"', returnStdout: true).trim() // Filter by name
                     if (container_id) {
                         sh "docker cp . ${container_id}:/usr/share/nginx/html"
                     }
