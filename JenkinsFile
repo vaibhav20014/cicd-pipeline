@@ -26,9 +26,9 @@ pipeline {
                         sh """
                             ${scannerHome}/bin/sonar-scanner \
                             -Dsonar.projectKey="${cicd-pipeline}" // Corrected to use PROJECT_KEY variable
-                            -Dsonar.sources=.  // Changed to use current directory for sources
+                            -Dsonar.sources=. \ // Changed to use current directory for sources
                             -Dsonar.host.url=http://13.235.14.58:9000 \
-                            -Dsonar.login="${Sonar}" // Corrected variable usage
+                            -Dsonar.login="${sqa_44b600f51b780257fe4a0c37a8e0c1c1cc8a476d}" // Corrected variable usage
                         """
                     }
                 }
