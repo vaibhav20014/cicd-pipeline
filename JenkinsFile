@@ -16,17 +16,19 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                // Define the SonarQube Scanner tool as configured in Jenkins
-                def sonarqubeScannerHome = tool name: 'SonarScanner' // Ensure 'SonarScanner' matches the tool name in Jenkins
-
-                // Use Jenkins credentials to securely access SonarQube
-                withCredentials([string(credentialsId: 'Sonar', variable: 'sonarLogin')]) {
-                    sh """
-                        ${sonarqubeScannerHome}/bin/sonar-scanner \
-                        -Dsonar.projectKey=cicd-pipeline \
-                        -Dsonar.host.url=http://13.235.14.58:9000 \
-                        -Dsonar.login=${sonarLogin}
-                    """
+                script {
+                    // Define the SonarQube Scanner tool
+                    def sonarqubeScannerHome = tool name: 'Sonar' // Ensure 'SonarScanner' matches the tool name in Jenkins
+                    
+                    // Use Jenkins credentials to securely access SonarQube
+                    withCredentials([string(credentialsId: 'Sonar', variable: 'sonarLogin')]) {
+                        sh """
+                            ${sonarqubeScannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=cicd-pipeline \
+                            -Dsonar.host.url=http://13.235.14.58:9000 \
+                            -Dsonar.login=${sonarLogin}
+                        """
+                    }
                 }
             }
         }
