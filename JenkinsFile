@@ -14,14 +14,21 @@ pipeline {
             }
         }
 
-         stage('sonar-scanner') {
-          def sonarqubeScannerHome = tool name: 'Sonar', 
-          withCredentials([string(credentialsId: 'Sonar', variable: 'sonarLogin')]) {
-            sh "${sonarqubeScannerHome}/opt/sonar/bin/linux-x86-64" +
-           "-Dsonar.projectKey=cicd-pipeline " +   // Replace 'cicd-pipeline' with your actual project key
-           "-Dsonar.host.url=http://13.235.14.58:9000 " +  // Replace with your actual SonarQube server URL
-           "-Dsonar.login=${sonarLogin}"
-          }
+        stage('SonarQube Analysis') {
+            steps {
+                // Define the SonarQube Scanner tool as configured in Jenkins
+                def sonarqubeScannerHome = tool name: 'Sonar' // Ensure 'SonarScanner' matches the tool name in Jenkins
+
+                // Use Jenkins credentials to securely access SonarQube
+                withCredentials([string(credentialsId: 'Sonar', variable: 'sonarLogin')]) {
+                    sh """
+                        ${sonarqubeScannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=cicd-pipeline \
+                        -Dsonar.host.url=http://13.235.14.58:9000 \
+                        -Dsonar.login=${sonarLogin}
+                    """
+                }
+            }
         }
 
         stage('Build Docker Image') {
