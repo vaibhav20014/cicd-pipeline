@@ -1,11 +1,7 @@
 pipeline {
     agent any
 
-    environment {
-        SONARQUBE_SERVER = 'Sonar' // Your SonarQube server name from Jenkins configuration
-        PROJECT_KEY = 'cicd-pipeline' // Unique project key for your SonarQube project
-        SONAR_TOKEN = credentials('Sonar') // Replace with the ID of your Jenkins secret with the Sonar token
-    }
+    
 
     stages {
         stage('Clone Repository') {
@@ -18,21 +14,14 @@ pipeline {
             }
         }
 
-        stage('SonarQube Scan') {
-            steps {
-                script {
-                    def scannerHome = tool 'Sonar' // Use the scanner tool you set up
-                    withSonarQubeEnv(SONARQUBE_SERVER) {
-                        sh """
-                            ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey="${cicd-pipeline}" // Corrected to use PROJECT_KEY variable
-                            -Dsonar.sources=. \ // Changed to use current directory for sources
-                            -Dsonar.host.url=http://13.235.14.58:9000 \
-                            -Dsonar.login="${sqa_44b600f51b780257fe4a0c37a8e0c1c1cc8a476d}" // Corrected variable usage
-                        """
-                    }
-                }
-            }
+         stage('sonar-scanner') {
+          def sonarqubeScannerHome = tool name: 'Sonar', 
+          withCredentials([string(credentialsId: 'Sonar', variable: 'sonarLogin')]) {
+            sh "${sonarqubeScannerHome}/opt/sonar/bin/linux-x86-64" +
+           "-Dsonar.projectKey=cicd-pipeline " +   // Replace 'cicd-pipeline' with your actual project key
+           "-Dsonar.host.url=http://13.235.14.58:9000 " +  // Replace with your actual SonarQube server URL
+           "-Dsonar.login=${sonarLogin}"
+          }
         }
 
         stage('Build Docker Image') {
