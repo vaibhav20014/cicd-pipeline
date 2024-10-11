@@ -1,4 +1,3 @@
-// config.js
 window.firebaseConfig = {
     apiKey: "AIzaSyCfqoocGvPWyFANxaV0JBdCyaNkeXZY46s",
     authDomain: "YOUR_AUTH_DOMAIN",
