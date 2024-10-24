@@ -68,7 +68,7 @@ stage('Copy Files to Running Container') {
         }
     }
 }
-
+{
     post {
         always {
             cleanWs()
