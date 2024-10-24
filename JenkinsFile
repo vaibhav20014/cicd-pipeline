@@ -44,6 +44,7 @@ pipeline {
                 sh 'docker stop nginx-container || true'
                 sh 'docker rm nginx-container || true'
                 sh 'docker run -d --name nginx-container -p 8000:80 nginx-server'
+                sh 'docker run -d --name nginx-container -p 8001:80 nginx-server'
             }
         }
 
