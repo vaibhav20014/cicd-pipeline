@@ -39,26 +39,35 @@ pipeline {
             }
         }
 
-        stage('Run Docker Container') {
-            steps {
-                sh 'docker stop nginx-container || true'
-                sh 'docker rm nginx-container || true'
-                sh 'docker run -d --name nginx-container1 -p 8000:80 nginx-server'
-                sh 'docker run -d --name nginx-container2 -p 8001:80 nginx-server'
+stage('Run Docker Container') {
+    steps {
+        script {
+            def containers = ['nginx-container1', 'nginx-container2']
+            def ports = ['8000:80', '8001:80']
+            
+            for (int i = 0; i < containers.size(); i++) {
+                sh "docker stop ${containers[i]} || true"
+                sh "docker rm ${containers[i]} || true"
+                sh "docker run -d --name ${containers[i]} -p ${ports[i]} nginx-server"
             }
         }
+    }
+}
 
-        stage('Copy Files to Running Container') {
-            steps {
-                script {
-                    def container_id = sh(script: 'docker ps --filter "name=nginx-container" --format "{{.ID}}"', returnStdout: true).trim() // Filter by name
-                    if (container_id) {
-                        sh "docker cp . ${container_id}:/usr/share/nginx/html"
-                    }
+stage('Copy Files to Running Container') {
+    steps {
+        script {
+            def containers = ['nginx-container1', 'nginx-container2']
+            
+            for (container in containers) {
+                def container_id = sh(script: "docker ps --filter 'name=${container}' --format '{{.ID}}'", returnStdout: true).trim()
+                if (container_id) {
+                    sh "docker cp . ${container_id}:/usr/share/nginx/html"
                 }
             }
         }
     }
+}
 
     post {
         always {
