@@ -41,7 +41,7 @@ pipeline {
             steps {
                 script {
                     def containers = ['nginx-container1', 'nginx-container2']
-                    def ports = ['8000:80', '8002:80']
+                    def ports = ['8000:80', '8001:80']
                     
                     for (int i = 0; i < containers.size(); i++) {
                         sh "docker stop ${containers[i]} || true"
