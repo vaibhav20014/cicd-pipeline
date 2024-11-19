@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        JENKINS_HEARTBEAT = "-Dorg.jenkinsci.plugins.durabletask.BourneShellScript.HEARTBEAT_CHECK_INTERVAL=86400"
+    }
+
     stages {
         stage('Clone Repository') {
             steps {
@@ -24,7 +28,8 @@ pipeline {
                             ${sonarqubeScannerHome}/bin/sonar-scanner \
                             -Dsonar.projectKey=cicd-pipeline \
                             -Dsonar.host.url=http://103.251.252.115:9000 \
-                            -Dsonar.login=${sonarLogin}
+                            -Dsonar.login=${sonarLogin} \
+                            ${env.JENKINS_HEARTBEAT}
                         """
                     }
                 }
@@ -33,22 +38,36 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t backend-service .'
+                sh 'docker build -t nginx-server .'
             }
         }
 
         stage('Run Docker Container') {
             steps {
                 script {
-                    def containerName = 'backend-container'
-                    def portMapping = '3000:3000'
+                    def containers = ['nginx-container1', 'nginx-container2']
+                    def ports = ['8000:80', '8001:80']
                     
-                    // Stop and remove the old container if it exists
-                    sh "docker stop ${containerName} || true"
-                    sh "docker rm ${containerName} || true"
+                    for (int i = 0; i < containers.size(); i++) {
+                        sh "docker stop ${containers[i]} || true"
+                        sh "docker rm ${containers[i]} || true"
+                        sh "docker run -d --name ${containers[i]} -p ${ports[i]} nginx-server"
+                    }
+                }
+            }
+        }
+
+        stage('Copy Files to Running Container') {
+            steps {
+                script {
+                    def containers = ['nginx-container1', 'nginx-container2']
                     
-                    // Run the new backend container
-                    sh "docker run -d --name ${containerName} -p ${portMapping} backend-service"
+                    for (container in containers) {
+                        def container_id = sh(script: "docker ps --filter 'name=${container}' --format '{{.ID}}'", returnStdout: true).trim()
+                        if (container_id) {
+                            sh "docker cp . ${container_id}:/usr/share/nginx/html"
+                        }
+                    }
                 }
             }
         }
