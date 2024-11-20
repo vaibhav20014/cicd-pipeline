@@ -21,11 +21,30 @@ pipeline {
                 }
             }
         }
+        stage('Run Tests') {
+            steps {
+                script {
+                    if (fileExists('./backend-service/package.json')) {
+                        sh '''
+                        cd ./backend-service
+                        npm install
+                        npm test
+                        '''
+                    } else {
+                        echo 'No backend tests to run.'
+                    }
+                }
+            }
+        }
         stage('Build Docker Images') {
             steps {
                 script {
                     sh 'docker build -t nginx-server .'
-                    sh 'docker build -t backend-service ./backend-service || true' // Handle missing backend-service gracefully
+                    if (fileExists('./backend-service/Dockerfile.node')) {
+                        sh 'docker build -t backend-service ./backend-service'
+                    } else {
+                        echo 'Backend service directory not found, skipping build.'
+                    }
                 }
             }
         }
@@ -47,8 +66,8 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    docker cp ./index.html nginx1:/usr/share/nginx/html/index.html
-                    docker cp ./index.html nginx2:/usr/share/nginx/html/index.html
+                    docker cp ./Signup.html nginx1:/usr/share/nginx/html/index.html
+                    docker cp ./Signup.html nginx2:/usr/share/nginx/html/index.html
                     '''
                 }
             }
