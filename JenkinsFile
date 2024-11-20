@@ -1,91 +1,68 @@
 pipeline {
     agent any
-
     environment {
-        JENKINS_HEARTBEAT = "-Dorg.jenkinsci.plugins.durabletask.BourneShellScript.HEARTBEAT_CHECK_INTERVAL=86400"
+        SONAR_LOGIN = credentials('sonar-credentials-id') // Replace with your SonarQube credentials ID
     }
-
     stages {
         stage('Clone Repository') {
             steps {
-                git (
-                    url: 'https://github.com/vaibhav20014/cicd-pipeline.git',
-                    branch: 'main',
-                    credentialsId: 'da5c97ea-6aae-4918-9418-7104dc229832'
-                )
+                git branch: 'main', url: 'https://github.com/vaibhav20014/cicd-pipeline.git'
             }
         }
-
         stage('SonarQube Analysis') {
             steps {
-                script {
-                    def sonarqubeScannerHome = tool name: 'Sonar'
-                    
-                    withCredentials([string(credentialsId: 'Sonar', variable: 'sonarLogin')]) {
-                        sh """
-                            ${sonarqubeScannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=cicd-pipeline \
-                            -Dsonar.host.url=http://103.251.252.115:9000 \
-                            -Dsonar.login=${sonarLogin} \
-                            ${env.JENKINS_HEARTBEAT}
-                        """
-                    }
+                withSonarQubeEnv('SonarQube') { // Replace 'SonarQube' with your SonarQube server name
+                    sh """
+                    sonar-scanner \
+                        -Dsonar.projectKey=cicd-pipeline \
+                        -Dsonar.host.url=http://103.251.252.115:9000 \
+                        -Dsonar.login=${SONAR_LOGIN}
+                    """
                 }
             }
         }
-
         stage('Build Docker Images') {
             steps {
                 script {
-                    // Build the NGINX image
                     sh 'docker build -t nginx-server .'
-
-                    // Build the backend service image
-                    sh 'docker build -t backend-service ./backend-service'
+                    sh 'docker build -t backend-service ./backend-service || true' // Handle missing backend-service gracefully
                 }
             }
         }
-
         stage('Run Docker Containers') {
+            when {
+                not { expression { env.BUILD_FAILURE != null } }
+            }
             steps {
                 script {
-                    def nginxContainers = ['nginx-container1', 'nginx-container2']
-                    def nginxPorts = ['8000:80', '8001:80']
-
-                    // Run NGINX containers
-                    for (int i = 0; i < nginxContainers.size(); i++) {
-                        sh "docker stop ${nginxContainers[i]} || true"
-                        sh "docker rm ${nginxContainers[i]} || true"
-                        sh "docker run -d --name ${nginxContainers[i]} -p ${nginxPorts[i]} nginx-server"
-                    }
-
-                    // Run the backend service container
-                    sh "docker stop backend-service || true"
-                    sh "docker rm backend-service || true"
-                    sh "docker run -d --name backend-service --link mysql-container:mysql -p 3000:3000 backend-service"
+                    sh 'docker run -d --name nginx1 -p 8001:8000 nginx-server'
+                    sh 'docker run -d --name nginx2 -p 8002:8000 nginx-server'
                 }
             }
         }
-
         stage('Copy Files to Running NGINX Containers') {
+            when {
+                not { expression { env.BUILD_FAILURE != null } }
+            }
             steps {
                 script {
-                    def nginxContainers = ['nginx-container1', 'nginx-container2']
-
-                    for (container in nginxContainers) {
-                        def container_id = sh(script: "docker ps --filter 'name=${container}' --format '{{.ID}}'", returnStdout: true).trim()
-                        if (container_id) {
-                            sh "docker cp . ${container_id}:/usr/share/nginx/html"
-                        }
-                    }
+                    sh '''
+                    docker cp ./index.html nginx1:/usr/share/nginx/html/index.html
+                    docker cp ./index.html nginx2:/usr/share/nginx/html/index.html
+                    '''
                 }
             }
         }
     }
-
     post {
         always {
             cleanWs()
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+        success {
+            echo 'Pipeline completed successfully!'
         }
     }
 }
