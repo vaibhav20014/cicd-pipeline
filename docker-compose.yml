@@ -1,44 +1,53 @@
 version: '3'
 services:
   nginx1:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile  # Use NGINX's Dockerfile
     container_name: nginx1
     ports:
       - "8000:80"
     volumes:
-      - ./html:/usr/share/nginx/html
+      - ./Signup.html:/usr/share/nginx/html/index.html
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
     networks:
       - my_app_network
 
   nginx2:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile  # Use NGINX's Dockerfile
     container_name: nginx2
     ports:
       - "8001:80"
     volumes:
-      - ./html:/usr/share/nginx/html
+      - ./Signup.html:/usr/share/nginx/html/index.html
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
     networks:
       - my_app_network
 
-  # Add Node.js API container
   my-api:
     build:
-      context: ./path-to-api  # Path to your Node.js API code
-      dockerfile: Dockerfile.node  # Ensure you have a separate Dockerfile for Node.js
+      context: .
+      dockerfile: Dockerfile.node  # Use Node.js Dockerfile
     container_name: my-api
     ports:
-      - "3000:3000"  # Expose the API on port 3000
+      - "3000:3000"
     networks:
       - my_app_network
+    volumes:
+      - .:/app  # Bind mount the current directory
 
-  # Add MySQL container
   mysql-server:
     image: mysql:latest
     container_name: mysql-server
     environment:
       MYSQL_ROOT_PASSWORD: my-secret-pw
+      MYSQL_DATABASE: TestDB
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD: testpassword
+    ports:
+      - "3306:3306"
     networks:
       - my_app_network
 
