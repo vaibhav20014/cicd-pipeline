@@ -34,36 +34,45 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Docker Images') {
             steps {
-                sh 'docker build -t nginx-server .'
+                script {
+                    // Build the NGINX image
+                    sh 'docker build -t nginx-server .'
+
+                    // Build the backend service image
+                    sh 'docker build -t backend-service ./backend-service'
+                }
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Run Docker Containers') {
             steps {
                 script {
-                    def containers = ['nginx-container1', 'nginx-container2']
-                    def ports = ['8000:80', '8001:80']
-                    
-                    for (int i = 0; i < containers.size(); i++) {
-                        sh "docker stop ${containers[i]} || true"
-                        sh "docker rm ${containers[i]} || true"
-                        sh "docker run -d --name ${containers[i]} -p ${ports[i]} nginx-server"
+                    def nginxContainers = ['nginx-container1', 'nginx-container2']
+                    def nginxPorts = ['8000:80', '8001:80']
+
+                    // Run NGINX containers
+                    for (int i = 0; i < nginxContainers.size(); i++) {
+                        sh "docker stop ${nginxContainers[i]} || true"
+                        sh "docker rm ${nginxContainers[i]} || true"
+                        sh "docker run -d --name ${nginxContainers[i]} -p ${nginxPorts[i]} nginx-server"
                     }
 
-                    // Additional docker run command if needed
+                    // Run the backend service container
+                    sh "docker stop backend-service || true"
+                    sh "docker rm backend-service || true"
                     sh "docker run -d --name backend-service --link mysql-container:mysql -p 3000:3000 backend-service"
                 }
             }
         }
 
-        stage('Copy Files to Running Container') {
+        stage('Copy Files to Running NGINX Containers') {
             steps {
                 script {
-                    def containers = ['nginx-container1', 'nginx-container2']
-                    
-                    for (container in containers) {
+                    def nginxContainers = ['nginx-container1', 'nginx-container2']
+
+                    for (container in nginxContainers) {
                         def container_id = sh(script: "docker ps --filter 'name=${container}' --format '{{.ID}}'", returnStdout: true).trim()
                         if (container_id) {
                             sh "docker cp . ${container_id}:/usr/share/nginx/html"
