@@ -55,10 +55,10 @@ pipeline {
                     // Run NGINX containers
                     sh """
                     docker ps -a -q --filter "name=nginx1" | grep -q . && docker rm -f nginx1
-                    docker run -d --name nginx1 -p 8001:8000 nginx-server"""
+                    docker run -d --name nginx1 -p 8000:8000 nginx-server"""
                     sh """
                     docker ps -a -q --filter "name=nginx2" | grep -q . && docker rm -f nginx2
-                    docker run -d --name nginx2 -p 8002:8000 nginx-server"""
+                    docker run -d --name nginx2 -p 8001:8000 nginx-server"""
 
                     // Run API container
                     sh 'docker run -d --name api-container -p 8081:8080 api-service'
