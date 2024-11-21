@@ -61,6 +61,7 @@ pipeline {
                     docker run -d --name nginx2 -p 8001:8000 nginx-server"""
 
                     // Run API container
+                    sh 'docker ps -a -q --filter "name=api-container" | grep -q . && docker rm -f api-container'
                     sh 'docker run -d --name api-container -p 8081:8080 api-service'
                 }
             }
