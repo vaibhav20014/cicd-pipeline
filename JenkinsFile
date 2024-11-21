@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     stages {
-    stage('Clone Repository') {
+        stage('Clone Repository') {
             steps {
                 git (
                     url: 'https://github.com/vaibhav20014/cicd-pipeline.git',
@@ -14,10 +14,8 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Define the SonarQube Scanner tool
-                    def sonarqubeScannerHome = tool name: 'Sonar' // Ensure 'Sonar' matches the tool name in Jenkins
+                    def sonarqubeScannerHome = tool name: 'Sonar'
                     
-                    // Use Jenkins credentials to securely access SonarQube
                     withCredentials([string(credentialsId: 'Sonar', variable: 'sonarLogin')]) {
                         sh """
                             ${sonarqubeScannerHome}/bin/sonar-scanner \
@@ -32,45 +30,38 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    if (fileExists('./backend-service/package.json')) {
-                        sh '''
-                        cd ./backend-service
-                        npm install
-                        npm test
-                        '''
-                    } else {
-                        echo 'No backend tests to run.'
-                    }
+                    echo 'No tests defined for this project.'
                 }
             }
         }
         stage('Build Docker Images') {
             steps {
                 script {
+                    // Build the NGINX server image
                     sh 'docker build -t nginx-server .'
-                    if (fileExists('./backend-service/Dockerfile.node')) {
-                        sh 'docker build -t backend-service ./backend-service'
+                    
+                    // Build the API container image using Dockerfile.node
+                    if (fileExists('Dockerfile.node')) {
+                        sh 'docker build -t api-service -f Dockerfile.node .'
                     } else {
-                        echo 'Backend service directory not found, skipping build.'
+                        error('Dockerfile.node not found, cannot build API service image.')
                     }
                 }
             }
         }
         stage('Run Docker Containers') {
-            when {
-                not { expression { env.BUILD_FAILURE != null } }
-            }
             steps {
                 script {
+                    // Run NGINX containers
                     sh 'docker run -d --name nginx1 -p 8001:8000 nginx-server'
                     sh 'docker run -d --name nginx2 -p 8002:8000 nginx-server'
+
+                    // Run API container
+                    sh 'docker run -d --name api-container -p 8080:8080 api-service'
                 }
             }
         }
         stage('Copy Files to Running NGINX Containers') {
-            when {
-                not { expression { env.BUILD_FAILURE != null } }
-            }
             steps {
                 script {
                     sh '''
