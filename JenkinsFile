@@ -1,8 +1,6 @@
 pipeline {
     agent any
-    environment {
-        SONAR_LOGIN = credentials('sonar-credentials-id') // Replace with your SonarQube credentials ID
-    }
+    
     stages {
         stage('Clone Repository') {
             steps {
@@ -11,13 +9,19 @@ pipeline {
         }
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') { // Replace 'SonarQube' with your SonarQube server name
-                    sh """
-                    sonar-scanner \
-                        -Dsonar.projectKey=cicd-pipeline \
-                        -Dsonar.host.url=http://103.251.252.115:9000 \
-                        -Dsonar.login=${SONAR_LOGIN}
-                    """
+                script {
+                    // Define the SonarQube Scanner tool
+                    def sonarqubeScannerHome = tool name: 'Sonar' // Ensure 'Sonar' matches the tool name in Jenkins
+                    
+                    // Use Jenkins credentials to securely access SonarQube
+                    withCredentials([string(credentialsId: 'Sonar', variable: 'sonarLogin')]) {
+                        sh """
+                            ${sonarqubeScannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=cicd-pipeline \
+                            -Dsonar.host.url=http://103.251.252.115:9000 \
+                            -Dsonar.login=${sonarLogin}
+                        """
+                    }
                 }
             }
         }
