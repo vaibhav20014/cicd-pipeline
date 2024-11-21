@@ -6,6 +6,11 @@ WORKDIR /app
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
+# Install npm latest and fix vulnerabilities if NPM_UPDATE is true
+RUN if [ "$NPM_UPDATE" = "true" ]; then \
+        npm install -g npm@latest && \
+        npm audit fix; \
+    fi
 
 # Install dependencies
 RUN npm install
