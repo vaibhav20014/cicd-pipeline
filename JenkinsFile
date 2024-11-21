@@ -1,6 +1,13 @@
 pipeline {
     agent any
     
+    environment {
+        MYSQL_CONTAINER_NAME = 'sql_server_container'
+        MYSQL_IMAGE = 'mcr.microsoft.com/mssql/server:2019-latest' // Replace with your MySQL image if different
+        MYSQL_ROOT_PASSWORD = 'Admin@123' // Set the root password
+        DB_NAME = 'Testdb'
+    }
+
     stages {
         stage('Clone Repository') {
             steps {
@@ -11,6 +18,7 @@ pipeline {
                 )
             }
         }
+
         stage('SonarQube Analysis') {
             steps {
                 script {
@@ -27,6 +35,7 @@ pipeline {
                 }
             }
         }
+
         stage('Run Tests') {
             steps {
                 script {
@@ -34,6 +43,29 @@ pipeline {
                 }
             }
         }
+
+        stage('Start MySQL Container') {
+            steps {
+                script {
+                    // Check if the MySQL container is already running
+                    def mysqlContainer = sh(script: "docker ps -q --filter name=${MYSQL_CONTAINER_NAME}", returnStdout: true).trim()
+                    
+                    // If MySQL container is not running, start it
+                    if (!mysqlContainer) {
+                        echo "Starting MySQL container..."
+                        sh """
+                            docker run -d --name ${MYSQL_CONTAINER_NAME} --network mynetwork \
+                            -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} \
+                            -e MYSQL_DATABASE=${DB_NAME} \
+                            ${MYSQL_IMAGE}
+                        """
+                    } else {
+                        echo "MySQL container is already running."
+                    }
+                }
+            }
+        }
+
         stage('Build Docker Images') {
             steps {
                 script {
@@ -49,23 +81,25 @@ pipeline {
                 }
             }
         }
+
         stage('Run Docker Containers') {
             steps {
                 script {
                     // Run NGINX containers
                     sh """
                     docker ps -a -q --filter "name=nginx1" | grep -q . && docker rm -f nginx1
-                    docker run -d --name nginx1 -p 8000:8000 nginx-server"""
+                    docker run -d --name nginx1 --network mynetwork -p 8000:8000 nginx-server"""
                     sh """
                     docker ps -a -q --filter "name=nginx2" | grep -q . && docker rm -f nginx2
-                    docker run -d --name nginx2 -p 8001:8000 nginx-server"""
+                    docker run -d --name nginx2 --network mynetwork -p 8001:8000 nginx-server"""
 
-                    // Run API container
+                    // Run API container and connect it to the network
                     sh 'docker ps -a -q --filter "name=api-container" | grep -q . && docker rm -f api-container'
-                    sh 'docker run -d --name api-container -p 8081:8080 api-service'
+                    sh 'docker run -d --name api-container --network mynetwork -p 8081:8080 api-service'
                 }
             }
         }
+
         stage('Copy Files to Running NGINX Containers') {
             steps {
                 script {
@@ -77,6 +111,7 @@ pipeline {
             }
         }
     }
+
     post {
         always {
             cleanWs()
