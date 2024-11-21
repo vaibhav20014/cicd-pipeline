@@ -2,9 +2,13 @@ pipeline {
     agent any
     
     stages {
-        stage('Clone Repository') {
+    stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/vaibhav20014/cicd-pipeline.git'
+                git (
+                    url: 'https://github.com/vaibhav20014/cicd-pipeline.git',
+                    branch: 'main',
+                    credentialsId: 'da5c97ea-6aae-4918-9418-7104dc229832'
+                )
             }
         }
         stage('SonarQube Analysis') {
