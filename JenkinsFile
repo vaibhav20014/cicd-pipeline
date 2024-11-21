@@ -1,12 +1,6 @@
 pipeline {
     agent any
-    
-    environment {
-        MYSQL_CONTAINER_NAME = 'sql_server_container'
-        MYSQL_IMAGE = 'mcr.microsoft.com/mssql/server:2019-latest' // Replace with your MySQL image if different
-        MYSQL_ROOT_PASSWORD = 'Admin@123' // Set the root password
-        DB_NAME = 'Testdb'
-    }
+
 
     stages {
         stage('Clone Repository') {
@@ -45,26 +39,26 @@ pipeline {
         }
 
         stage('Start MySQL Container') {
-            steps {
-                script {
-                    // Check if the MySQL container is already running
-                    def mysqlContainer = sh(script: "docker ps -q --filter name=${MYSQL_CONTAINER_NAME}", returnStdout: true).trim()
-                    
-                    // If MySQL container is not running, start it
-                    if (!mysqlContainer) {
-                        echo "Starting MySQL container..."
-                        sh """
-                            docker run -d --name ${MYSQL_CONTAINER_NAME} --network mynetwork \
-                            -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} \
-                            -e MYSQL_DATABASE=${DB_NAME} \
-                            ${MYSQL_IMAGE}
-                        """
-                    } else {
-                        echo "MySQL container is already running."
-                    }
-                }
+    steps {
+        script {
+            // Check if the container already exists
+            def containerExists = sh(script: "docker ps -q --filter name=sql_server_container", returnStdout: true).trim()
+            if (containerExists) {
+                echo "Container sql_server_container already exists. Stopping and removing it..."
+                sh "docker rm -f sql_server_container"
             }
+            echo "Starting MySQL container..."
+            // Start a new MySQL container with a different name if the previous one was removed
+            sh """
+                docker run -d --name sql_server_container \
+                --network mynetwork \
+                -e MYSQL_ROOT_PASSWORD=Admin@123 \
+                -e MYSQL_DATABASE=Testdb \
+                mysql:latest
+            """
         }
+    }
+}
 
         stage('Build Docker Images') {
             steps {
