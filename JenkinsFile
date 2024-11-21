@@ -1,7 +1,6 @@
 pipeline {
     agent any
 
-
     stages {
         stage('Clone Repository') {
             steps {
@@ -38,28 +37,43 @@ pipeline {
             }
         }
 
-stage('Start MySQL Container') {
-    steps {
-        script {
-            // Check if the container already exists
-            def containerExists = sh(script: "docker ps -a -q --filter name=sql_server_container", returnStdout: true).trim()
-            if (containerExists) {
-                echo "Container sql_server_container already exists. Stopping and removing it..."
-                sh "docker rm -f sql_server_container"
+        stage('Create Docker Network') {
+            steps {
+                script {
+                    def networkName = 'mynetwork'
+                    // Check if network exists, if not, create it
+                    def networkExists = sh(script: "docker network ls | grep ${networkName}", returnStatus: true)
+                    if (networkExists != 0) {
+                        echo "Network ${networkName} does not exist. Creating it..."
+                        sh "docker network create ${networkName}"
+                    } else {
+                        echo "Network ${networkName} already exists."
+                    }
+                }
             }
-            echo "Starting MySQL container..."
-            // Start a new MySQL container with a different name if the previous one was removed
-            sh """
-                docker run -d --name sql_server_container \
-                --network mynetwork \
-                -e MYSQL_ROOT_PASSWORD=Admin@123 \
-                -e MYSQL_DATABASE=Testdb \
-                mysql:latest
-            """
         }
-    }
-}
 
+        stage('Start MySQL Container') {
+            steps {
+                script {
+                    // Check if the container already exists
+                    def containerExists = sh(script: "docker ps -a -q --filter name=sql_server_container", returnStdout: true).trim()
+                    if (containerExists) {
+                        echo "Container sql_server_container already exists. Stopping and removing it..."
+                        sh "docker rm -f sql_server_container"
+                    }
+                    echo "Starting MySQL container..."
+                    // Start a new MySQL container with a different name if the previous one was removed
+                    sh """
+                        docker run -d --name sql_server_container \
+                        --network mynetwork \
+                        -e MYSQL_ROOT_PASSWORD=Admin@123 \
+                        -e MYSQL_DATABASE=Testdb \
+                        mysql:latest
+                    """
+                }
+            }
+        }
 
         stage('Build Docker Images') {
             steps {
