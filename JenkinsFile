@@ -42,10 +42,10 @@ pipeline {
     steps {
         script {
             // Check if the container already exists
-            def containerExists = sh(script: "docker ps -q --filter name=sql_server_container", returnStdout: true).trim()
+            def containerExists = sh(script: "docker ps -q --filter name=/sql_server_container", returnStdout: true).trim()
             if (containerExists) {
                 echo "Container sql_server_container already exists. Stopping and removing it..."
-                sh "docker rm -f sql_server_container"
+                sh "docker rm -f /sql_server_container"
             }
             echo "Starting MySQL container..."
             // Start a new MySQL container with a different name if the previous one was removed
