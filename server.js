@@ -6,8 +6,8 @@ const app = express();
 app.use(express.json());
 
 const db = mysql.createConnection({
-    host: '127.0.0.1', // Use the Docker container name for MySQL
-    user: 'root',
+    host: 'sql_server_container', // Use the Docker container name for MySQL
+    user: 'SA',
     password: 'Admin@123',
     database: 'Testdb',
 });
