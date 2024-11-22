@@ -39,13 +39,13 @@ services:
       - .:/app  # Bind mount the current directory
 
   mysql-server:
-    image: mcr.microsoft.com/mssql/server:2019-latest
+    image: mysql:latest  # Updated to use MySQL
     container_name: sql_server_container
     environment:
-      # MYSQL_ROOT_PASSWORD: my-secret-pw
-      MYSQL_DATABASE: Testdb
-      MYSQL_USER: SA
-      MYSQL_PASSWORD: Admin@123
+      MYSQL_ROOT_PASSWORD: Admin@123  # Root password
+      MYSQL_DATABASE: Testdb          # Default database
+      MYSQL_USER: testuser            # Custom user
+      MYSQL_PASSWORD: testpassword    # Custom user password
     ports:
       - "3306:3306"
     networks:
