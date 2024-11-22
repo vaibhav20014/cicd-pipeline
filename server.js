@@ -9,7 +9,7 @@ const db = mysql.createConnection({
     host: 'sql_server_container', // Use the Docker container name for MySQL
     user: 'SA',
     password: 'Admin@123',
-    database: 'TestDB',
+    database: 'Testdb',
 });
 
 // Register Endpoint
