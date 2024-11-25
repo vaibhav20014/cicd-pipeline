@@ -42,6 +42,7 @@ services:
     image: mcr.microsoft.com/mssql/server:latest  # Updated to use MySQL
     container_name: sql_server_container
     environment:
+      ACCEPT_EULA: "Y"
       MYSQL_ROOT_PASSWORD: Admin@123  # Root password
       MYSQL_DATABASE: Testdb          # Default database
       MYSQL_USER: testuser            # Custom user
