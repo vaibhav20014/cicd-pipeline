@@ -10,7 +10,7 @@ pipeline {
                     credentialsId: 'da5c97ea-6aae-4918-9418-7104dc229832'
                 )
             }
-        }
+        } 
 
         stage('SonarQube Analysis') {
             steps {
