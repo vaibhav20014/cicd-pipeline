@@ -2,6 +2,25 @@ pipeline {
     agent any
 
     stages {
+        stage('Install Docker Compose') {
+            steps {
+                script {
+                    // Check if docker-compose is installed
+                    def dockerComposeInstalled = sh(script: 'which docker-compose', returnStdout: true).trim()
+                    if (!dockerComposeInstalled) {
+                        echo 'Docker Compose is not installed. Installing...'
+                        // Install Docker Compose
+                        sh '''
+                            sudo curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+                            sudo chmod +x /usr/local/bin/docker-compose
+                        '''
+                    } else {
+                        echo 'Docker Compose is already installed.'
+                    }
+                }
+            }
+        }
+
         stage('Clone Repository') {
             steps {
                 git (
@@ -10,7 +29,7 @@ pipeline {
                     credentialsId: 'da5c97ea-6aae-4918-9418-7104dc229832'
                 )
             }
-        } 
+        }
 
         stage('SonarQube Analysis') {
             steps {
@@ -37,63 +56,40 @@ pipeline {
             }
         }
 
-        stage('Build Docker Images') {
+        stage('Clean Up Existing Containers') {
             steps {
                 script {
-                    def nginxImageExists = sh(script: "docker images -q nginx-server", returnStdout: true).trim()
-                    if (!nginxImageExists) {
-                        echo "Building NGINX server image..."
-                        sh 'DOCKER_BUILDKIT=1 docker build -t nginx-server .'
-                    } else {
-                        echo "NGINX server image already exists. Skipping build."
-                    }
-
-                    def apiImageExists = sh(script: "docker images -q api-service", returnStdout: true).trim()
-                    if (fileExists('Dockerfile.node')) {
-                        if (!apiImageExists) {
-                            echo "Building API service image..."
-                            sh 'DOCKER_BUILDKIT=1 docker build -t api-service -f Dockerfile.node .'
-                        } else {
-                            echo "API service image already exists. Skipping build."
-                        }
-                    } else {
-                        error('Dockerfile.node not found, cannot build API service image.')
-                    }
+                    // Clean up any existing containers with conflicting names
+                    sh '''
+                        docker ps -a --filter "name=nginx1" --format "{{.ID}}" | xargs -r docker rm -f
+                        docker ps -a --filter "name=nginx2" --format "{{.ID}}" | xargs -r docker rm -f
+                        docker ps -a --filter "name=api-container" --format "{{.ID}}" | xargs -r docker rm -f
+                        docker ps -a --filter "name=sql_server_container" --format "{{.ID}}" | xargs -r docker rm -f
+                    '''
                 }
             }
         }
 
-        stage('Start Docker Compose') {
+        stage('Run Docker Compose') {
             steps {
                 script {
-                    // Use Docker Compose to start the services and network defined in docker-compose.yml
-                    echo 'Starting Docker Compose services...'
+                    echo 'Running Docker Compose...'
+                    // Run docker-compose up in detached mode
                     sh 'docker-compose up -d'
                 }
             }
         }
 
-        stage('Copy Files to Running NGINX Containers') {
-            steps {
-                script {
-                    sh '''
-                        docker cp ./Signup.html nginx1:/usr/share/nginx/html/index.html
-                        docker cp ./Signup.html nginx2:/usr/share/nginx/html/index.html
-                    '''
-                }
+        post {
+            always {
+                cleanWs()
             }
-        }
-    }
-
-    post {
-        always {
-            cleanWs()
-        }
-        failure {
-            echo 'Pipeline failed!'
-        }
-        success {
-            echo 'Pipeline completed successfully!'
+            failure {
+                echo 'Pipeline failed!'
+            }
+            success {
+                echo 'Pipeline completed successfully!'
+            }
         }
     }
 }
