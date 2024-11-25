@@ -79,17 +79,17 @@ pipeline {
                 }
             }
         }
+    }
 
-        post {
-            always {
-                cleanWs()
-            }
-            failure {
-                echo 'Pipeline failed!'
-            }
-            success {
-                echo 'Pipeline completed successfully!'
-            }
+    post {
+        always {
+            cleanWs()
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+        success {
+            echo 'Pipeline completed successfully!'
         }
     }
 }
