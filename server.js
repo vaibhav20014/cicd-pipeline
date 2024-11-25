@@ -12,7 +12,7 @@ app.use(express.json());
 //     password: 'Admin@123',
 //     database: 'Testdb',
 // });
-
+ 
 // Register Endpoint
 app.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
