@@ -39,7 +39,7 @@ services:
       - .:/app  # Bind mount the current directory
 
   mysql-server:
-    image: mysql:latest  # Updated to use MySQL
+    image: mcr.microsoft.com/mssql/server:latest  # Updated to use MySQL
     container_name: sql_server_container
     environment:
       MYSQL_ROOT_PASSWORD: Admin@123  # Root password
