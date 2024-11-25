@@ -3,7 +3,7 @@ services:
   nginx1:
     build:
       context: .
-      dockerfile: Dockerfile  # Use NGINX's Dockerfile
+      dockerfile: Dockerfile
     container_name: nginx1
     ports:
       - "8000:80"
@@ -16,7 +16,7 @@ services:
   nginx2:
     build:
       context: .
-      dockerfile: Dockerfile  # Use NGINX's Dockerfile
+      dockerfile: Dockerfile
     container_name: nginx2
     ports:
       - "8001:80"
@@ -29,28 +29,37 @@ services:
   my-api:
     build:
       context: .
-      dockerfile: Dockerfile.node  # Use Node.js Dockerfile
+      dockerfile: Dockerfile.node
     container_name: api-container
     ports:
       - "3000:3000"
     networks:
       - my_app_network
+    environment:
+      - DB_HOST=sql_server_container
+      - DB_USER=sa
+      - DB_PASSWORD=Admin@123
+      - DB_NAME=Testdb
+      - DB_PORT=1433
     volumes:
-      - .:/app  # Bind mount the current directory
+      - .:/app
 
-  mysql-server:
-    image: mcr.microsoft.com/mssql/server:latest  # Updated to use MySQL
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sql_server_container
     environment:
       ACCEPT_EULA: "Y"
-      MYSQL_ROOT_PASSWORD: Admin@123  # Root password
-      MYSQL_DATABASE: Testdb          # Default database
-      MYSQL_USER: testuser            # Custom user
-      MYSQL_PASSWORD: testpassword    # Custom user password
+      MSSQL_SA_PASSWORD: Admin@123
+      MSSQL_PID: Developer
     ports:
       - "1433:1433"
     networks:
       - my_app_network
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Admin@123", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 networks:
   my_app_network:
