@@ -68,6 +68,7 @@ pipeline {
                             sh """
                                 docker run -d --name ${containerName} \
                                 --network ${networkName} \
+                                -p 3306:3306 \
                                 -e MYSQL_ROOT_PASSWORD=Admin@123 \
                                 -e MYSQL_DATABASE=Testdb \
                                 mysql:latest
