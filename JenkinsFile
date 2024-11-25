@@ -105,25 +105,61 @@ pipeline {
         }
 
         stage('Run Docker Containers') {
-            steps {
-                script {
-                    def networkName = 'my_app_network'
+    steps {
+        script {
+            def networkName = 'my_app_network'
 
-                    sh """
-                        docker ps --filter name=nginx1 --format '{{.Names}}' | grep -q nginx1 || \
-                        docker run -d --name nginx1 --network ${networkName} -p 8000:8000 nginx-server
-                    """
-                    sh """
-                        docker ps --filter name=nginx2 --format '{{.Names}}' | grep -q nginx2 || \
-                        docker run -d --name nginx2 --network ${networkName} -p 8001:8000 nginx-server
-                    """
-                    sh """
-                        docker ps --filter name=api-container --format '{{.Names}}' | grep -q api-container || \
-                        docker run -d --name api-container --network ${networkName} -p 8081:8080 api-service
-                    """
+            // Check and handle the NGINX1 container
+            def nginx1Exists = sh(script: "docker ps -a -q --filter name=nginx1", returnStdout: true).trim()
+            if (nginx1Exists) {
+                def nginx1Running = sh(script: "docker ps -q --filter name=nginx1", returnStdout: true).trim()
+                if (nginx1Running) {
+                    echo "NGINX1 container is already running."
+                } else {
+                    echo "NGINX1 container exists but is not running. Removing and recreating it..."
+                    sh "docker rm -f nginx1"
+                    sh "docker run -d --name nginx1 --network ${networkName} -p 8000:8000 nginx-server"
                 }
+            } else {
+                echo "NGINX1 container does not exist. Creating it..."
+                sh "docker run -d --name nginx1 --network ${networkName} -p 8000:8000 nginx-server"
+            }
+
+            // Check and handle the NGINX2 container
+            def nginx2Exists = sh(script: "docker ps -a -q --filter name=nginx2", returnStdout: true).trim()
+            if (nginx2Exists) {
+                def nginx2Running = sh(script: "docker ps -q --filter name=nginx2", returnStdout: true).trim()
+                if (nginx2Running) {
+                    echo "NGINX2 container is already running."
+                } else {
+                    echo "NGINX2 container exists but is not running. Removing and recreating it..."
+                    sh "docker rm -f nginx2"
+                    sh "docker run -d --name nginx2 --network ${networkName} -p 8001:8000 nginx-server"
+                }
+            } else {
+                echo "NGINX2 container does not exist. Creating it..."
+                sh "docker run -d --name nginx2 --network ${networkName} -p 8001:8000 nginx-server"
+            }
+
+            // Check and handle the API container
+            def apiContainerExists = sh(script: "docker ps -a -q --filter name=api-container", returnStdout: true).trim()
+            if (apiContainerExists) {
+                def apiContainerRunning = sh(script: "docker ps -q --filter name=api-container", returnStdout: true).trim()
+                if (apiContainerRunning) {
+                    echo "API container is already running."
+                } else {
+                    echo "API container exists but is not running. Removing and recreating it..."
+                    sh "docker rm -f api-container"
+                    sh "docker run -d --name api-container --network ${networkName} -p 8081:8080 api-service"
+                }
+            } else {
+                echo "API container does not exist. Creating it..."
+                sh "docker run -d --name api-container --network ${networkName} -p 8081:8080 api-service"
             }
         }
+    }
+}
+
 
         stage('Copy Files to Running NGINX Containers') {
             steps {
