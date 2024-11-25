@@ -96,11 +96,12 @@ pipeline {
             steps {
                 script {
                     // Build the NGINX server image
-                    sh 'docker build -t nginx-server .'
+                    export DOCKER_BUILDKIT=1
+                    sh 'DOCKER_BUILDKIT=1 docker build -t nginx-server .'
                     
                     // Build the API container image using Dockerfile.node
                     if (fileExists('Dockerfile.node')) {
-                        sh 'docker build -t api-service -f Dockerfile.node .'
+                        sh 'DOCKER_BUILDKIT=1 docker build -t api-service -f Dockerfile.node .'
                     } else {
                         error('Dockerfile.node not found, cannot build API service image.')
                     }
