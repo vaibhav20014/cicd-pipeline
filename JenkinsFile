@@ -41,14 +41,10 @@ pipeline {
             steps {
                 script {
                     def networkName = 'my_app_network'
-                    // Check if network exists, if not, create it
-                    def networkExists = sh(script: "docker network ls | grep ${networkName}", returnStatus: true)
-                    if (networkExists != 0) {
-                        echo "Network ${networkName} does not exist. Creating it..."
-                        sh "docker network create ${networkName}"
-                    } else {
-                        echo "Network ${networkName} already exists."
-                    }
+                    sh """
+                        docker network ls --filter name=${networkName} | grep -q ${networkName} || \
+                        docker network create ${networkName}
+                    """
                 }
             }
         }
@@ -56,37 +52,27 @@ pipeline {
         stage('Start MySQL Container') {
             steps {
                 script {
-                    // Check if the container already exists
-                    def containerExists = sh(script: "docker ps -a -q --filter name=sql_server_container", returnStdout: true).trim()
-                    if (containerExists) {
-                        echo "Container sql_server_container already exists."
-                        
-                        // Check if the container is running
-                        def containerRunning = sh(script: "docker ps -q --filter name=sql_server_container", returnStdout: true).trim()
-                        if (containerRunning) {
-                            echo "Container sql_server_container is already running."
-                        } else {
-                            echo "Container sql_server_container exists but is not running. Starting it..."
-                            sh "docker start sql_server_container"
-                        }
-                    } else {
-                        echo "Creating and starting a new MySQL container..."
-                        
-                        // Ensure the Docker network exists
-                        def networkExists = sh(script: "docker network ls --filter name=${networkName} -q", returnStdout: true).trim()
-                        if (!networkExists) {
-                            echo "Creating Docker network ${networkName}..."
-                            sh "docker network create ${networkName}"
-                        }
+                    def containerName = 'sql_server_container'
+                    def networkName = 'my_app_network'
 
-                        // Run the new container
-                        sh """
-                            docker run -d --name sql_server_container \
-                            --network ${networkName} \
-                            -e MYSQL_ROOT_PASSWORD=Admin@123 \
-                            -e MYSQL_DATABASE=Testdb \
-                            mysql:latest
-                        """
+                    def isRunning = sh(script: "docker ps --filter name=${containerName} --format '{{.Names}}'", returnStdout: true).trim()
+                    if (isRunning) {
+                        echo "Container ${containerName} is already running."
+                    } else {
+                        def isStopped = sh(script: "docker ps -a --filter name=${containerName} --format '{{.Names}}'", returnStdout: true).trim()
+                        if (isStopped) {
+                            echo "Container ${containerName} exists but is not running. Starting it..."
+                            sh "docker start ${containerName}"
+                        } else {
+                            echo "Creating and starting a new MySQL container..."
+                            sh """
+                                docker run -d --name ${containerName} \
+                                --network ${networkName} \
+                                -e MYSQL_ROOT_PASSWORD=Admin@123 \
+                                -e MYSQL_DATABASE=Testdb \
+                                mysql:latest
+                            """
+                        }
                     }
                 }
             }
@@ -95,13 +81,22 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 script {
-                    // Build the NGINX server image
-                    export DOCKER_BUILDKIT=1
-                    sh 'DOCKER_BUILDKIT=1 docker build -t nginx-server .'
-                    
-                    // Build the API container image using Dockerfile.node
+                    def nginxImageExists = sh(script: "docker images -q nginx-server", returnStdout: true).trim()
+                    if (!nginxImageExists) {
+                        echo "Building NGINX server image..."
+                        sh 'DOCKER_BUILDKIT=1 docker build -t nginx-server .'
+                    } else {
+                        echo "NGINX server image already exists. Skipping build."
+                    }
+
+                    def apiImageExists = sh(script: "docker images -q api-service", returnStdout: true).trim()
                     if (fileExists('Dockerfile.node')) {
-                        sh 'DOCKER_BUILDKIT=1 docker build -t api-service -f Dockerfile.node .'
+                        if (!apiImageExists) {
+                            echo "Building API service image..."
+                            sh 'DOCKER_BUILDKIT=1 docker build -t api-service -f Dockerfile.node .'
+                        } else {
+                            echo "API service image already exists. Skipping build."
+                        }
                     } else {
                         error('Dockerfile.node not found, cannot build API service image.')
                     }
@@ -112,19 +107,20 @@ pipeline {
         stage('Run Docker Containers') {
             steps {
                 script {
-                    // Run NGINX containers
-                    sh """
-                    docker ps -a -q --filter "name=nginx1" | grep -q . && docker rm -f nginx1
-                    docker run -d --name nginx1 --network ${networkName} -p 8000:8000 nginx-server
-                    """
-                    sh """
-                    docker ps -a -q --filter "name=nginx2" | grep -q . && docker rm -f nginx2
-                    docker run -d --name nginx2 --network ${networkName} -p 8001:8000 nginx-server
-                    """
+                    def networkName = 'my_app_network'
 
-                    // Run API container and connect it to the network
-                    sh 'docker ps -a -q --filter "name=api-container" | grep -q . && docker rm -f api-container'
-                    sh 'docker run -d --name api-container --network ${networkName} -p 8081:8080 api-service'
+                    sh """
+                        docker ps --filter name=nginx1 --format '{{.Names}}' | grep -q nginx1 || \
+                        docker run -d --name nginx1 --network ${networkName} -p 8000:8000 nginx-server
+                    """
+                    sh """
+                        docker ps --filter name=nginx2 --format '{{.Names}}' | grep -q nginx2 || \
+                        docker run -d --name nginx2 --network ${networkName} -p 8001:8000 nginx-server
+                    """
+                    sh """
+                        docker ps --filter name=api-container --format '{{.Names}}' | grep -q api-container || \
+                        docker run -d --name api-container --network ${networkName} -p 8081:8080 api-service
+                    """
                 }
             }
         }
@@ -133,8 +129,8 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    docker cp ./Signup.html nginx1:/usr/share/nginx/html/index.html
-                    docker cp ./Signup.html nginx2:/usr/share/nginx/html/index.html
+                        docker cp ./Signup.html nginx1:/usr/share/nginx/html/index.html
+                        docker cp ./Signup.html nginx2:/usr/share/nginx/html/index.html
                     '''
                 }
             }
