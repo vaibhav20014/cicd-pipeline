@@ -37,11 +37,11 @@ services:
       - "1433:1433"
     networks:
       - my_app_network
-    healthcheck:
-      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Admin@123", "-Q", "SELECT 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+    # healthcheck:
+    #   test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Admin@123", "-Q", "SELECT 1"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 3
 
   my-api:
     build:
