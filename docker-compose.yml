@@ -40,7 +40,7 @@ services:
     networks:
       - my_app_network
     healthcheck:
-      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Admin@123", "-Q", "SELECT 1"]
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "SA", "-P", "Admin@123", "-Q", "SELECT 1"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -56,7 +56,7 @@ services:
         - my_app_network
       environment:
         - DB_HOST=sql_server_container
-        - DB_USER=sa
+        - DB_USER=SA
         - DB_PASSWORD=Admin@123
         - DB_NAME=Testdb
         - DB_PORT=1433
