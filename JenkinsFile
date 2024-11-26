@@ -35,7 +35,7 @@ pipeline {
             steps {
                 script {
                     def sonarqubeScannerHome = tool name: 'Sonar'
-                    
+
                     withCredentials([string(credentialsId: 'Sonar', variable: 'sonarLogin')]) {
                         sh """
                             ${sonarqubeScannerHome}/bin/sonar-scanner \
@@ -70,27 +70,27 @@ pipeline {
             }
         }
 
-stage('Run Docker Compose') {
-    steps {
-        script {
-            echo "Running Docker Compose..."
-            sh "docker-compose up -d"
+        stage('Run Docker Compose') {
+            steps {
+                script {
+                    echo "Running Docker Compose..."
+                    sh "docker-compose up -d"
 
-            echo "Waiting for SQL Server to be ready..."
-            sh '''
-            echo $5
-            for i in {1..30}; do
-              if [ "$(docker inspect -f \'{{.State.Health.Status}}\' sql_server_container)" == "healthy" ]; then
-                echo "SQL Server is healthy."
-                break
-              fi
-              echo "Waiting for SQL Server..."
-              sleep 10
-            done
-            '''
+                    echo "Waiting for SQL Server to be ready..."
+                    sh '''
+                    for i in {1..30}; do
+                      if [ "$(docker inspect -f \'{{.State.Health.Status}}\' sql_server_container)" == "healthy" ]; then
+                        echo "SQL Server is healthy."
+                        break
+                      fi
+                      echo "Waiting for SQL Server..."
+                      sleep 10
+                    done
+                    '''
+                }
+            }
         }
     }
-}
 
     post {
         always {
@@ -103,5 +103,4 @@ stage('Run Docker Compose') {
             echo 'Pipeline completed successfully!'
         }
     }
-}
 }
