@@ -26,23 +26,7 @@ services:
     networks:
       - my_app_network
 
-  my-api:
-    build:
-      context: .
-      dockerfile: Dockerfile.node
-    container_name: api-container
-    ports:
-      - "3000:3000"
-    networks:
-      - my_app_network
-    environment:
-      - DB_HOST=sql_server_container
-      - DB_USER=sa
-      - DB_PASSWORD=Admin@123
-      - DB_NAME=Testdb
-      - DB_PORT=1433
-    volumes:
-      - .:/app
+  
 
   sql-server:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -60,6 +44,24 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+
+  my-api:
+      build:
+        context: .
+        dockerfile: Dockerfile.node
+      container_name: api-container
+      ports:
+        - "3000:3000"
+      networks:
+        - my_app_network
+      environment:
+        - DB_HOST=sql_server_container
+        - DB_USER=sa
+        - DB_PASSWORD=Admin@123
+        - DB_NAME=Testdb
+        - DB_PORT=1433
+      volumes:
+        - .:/app
 
 networks:
   my_app_network:
