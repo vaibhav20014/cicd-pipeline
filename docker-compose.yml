@@ -7,7 +7,7 @@ services:
     container_name: nginx1
     ports:
       - "8000:80"
-    volumes:
+    volumes: 
       - ./Signup.html:/usr/share/nginx/html/index.html
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
     networks:
