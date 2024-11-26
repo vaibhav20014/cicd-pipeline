@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: nginx1
-    ports:
+    ports: 
       - "8000:80"
     volumes: 
       - ./Signup.html:/usr/share/nginx/html/index.html
