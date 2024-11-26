@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 services:
   nginx1: 
     build:
@@ -12,7 +12,7 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
     networks:
       - my_app_network
- 
+
   nginx2:
     build:
       context: .
@@ -26,8 +26,6 @@ services:
     networks:
       - my_app_network
 
-  
-
   sql-server:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sql_server_container
@@ -40,28 +38,31 @@ services:
     networks:
       - my_app_network
     healthcheck:
-      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "SA", "-P", "Admin@123", "-Q", "SELECT 1"]
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Admin@123", "-Q", "SELECT 1"]
       interval: 10s
       timeout: 5s
       retries: 3
 
   my-api:
-      build:
-        context: .
-        dockerfile: Dockerfile.node
-      container_name: api-container
-      ports:
-        - "3000:3000"
-      networks:
-        - my_app_network
-      environment:
-        - DB_HOST=sql_server_container
-        - DB_USER=SA
-        - DB_PASSWORD=Admin@123
-        - DB_NAME=Testdb
-        - DB_PORT=1433
-      volumes:
-        - .:/app
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: api-container
+    ports:
+      - "3000:3000"
+    networks:
+      - my_app_network
+    environment:
+      - DB_HOST=sql_server_container
+      - DB_USER=sa
+      - DB_PASSWORD=Admin@123
+      - DB_NAME=Testdb
+      - DB_PORT=1433
+    volumes:
+      - .:/app
+    depends_on:
+      sql-server:
+        condition: service_healthy  # Ensures sql-server is healthy before starting my-api
 
 networks:
   my_app_network:
