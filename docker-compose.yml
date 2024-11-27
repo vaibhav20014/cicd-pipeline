@@ -3,7 +3,7 @@ services:
   app:
     build: .
     networks:
-      - my_app_network:
+      - my_app_network
         
   nginx1: 
     build:
