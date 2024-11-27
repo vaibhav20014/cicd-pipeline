@@ -39,4 +39,4 @@ app.post('/login', (req, res) => {
     });
 });
 
-app.listen(8001, () => console.log('Server running on port 8001'));
+app.listen(3000, () => console.log('Server running on port 3000'));
