@@ -46,12 +46,12 @@ services:
       - "3000:3000"
     networks:
       - my_app_network
-    environment:
-      - DB_HOST=sql_server_container
-      - DB_PORT=3306
-      - DB_USER=SA
-      - DB_PASSWORD=Admin@123
-      - DB_NAME=Testdb
+    # environment:
+    #   - DB_HOST=sql_server_container
+    #   - DB_PORT=3306
+    #   - DB_USER=SA
+    #   - DB_PASSWORD=Admin@123
+    #   - DB_NAME=Testdb
       
     volumes:
       - .:/app
