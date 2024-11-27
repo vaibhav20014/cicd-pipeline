@@ -43,7 +43,7 @@ services:
       dockerfile: Dockerfile.node
     container_name: api-container
     ports:
-      - "3000:3000"
+      - "3306:3306"
     networks:
       - my_app_network
     environment:
