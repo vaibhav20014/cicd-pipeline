@@ -56,6 +56,8 @@ services:
       - .:/app
     depends_on:
       - sql-server
+    entrypoint: ["./wait-for-it.sh", "sql_server_container:1433", "--", "npm", "start"]
+    restart: always
 
 networks:
   my_app_network:
