@@ -77,16 +77,7 @@ pipeline {
                     sh "docker-compose up -d"
 
                     echo "Waiting for SQL Server to be ready..."
-                    sh '''
-                    for i in {1..30}; do
-                      if [ "$(docker inspect -f \'{{.State.Health.Status}}\' sql_server_container)" == "healthy" ]; then
-                        echo "SQL Server is healthy."
-                        break
-                      fi
-                      echo "Waiting for SQL Server..."
-                      sleep 10
-                    done
-                    '''
+                    
                 }
             }
         }
