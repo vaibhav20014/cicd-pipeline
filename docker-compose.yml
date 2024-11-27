@@ -33,7 +33,7 @@ services:
       MSSQL_SA_PASSWORD: Admin@123
       MSSQL_PID: Developer
     ports:
-      - "1433:1433"
+      - "3306:3306"
     networks:
       - my_app_network
 
@@ -43,12 +43,12 @@ services:
       dockerfile: Dockerfile.node
     container_name: api-container
     ports:
-      - "3306:3306"
+      - "3000:3000"
     networks:
       - my_app_network
     environment:
-      - DB_HOST=172.20.0.2
-      - DB_PORT=1433
+      - DB_HOST=sql_server_container
+      - DB_PORT=3306
       - DB_USER=sa
       - DB_PASSWORD=Admin@123
       - DB_NAME=Testdb

@@ -7,7 +7,7 @@ app.use(express.json());
 
 const db = mysql.createConnection({
     host: 'sql_server_container',
-    port: '1433',
+    port: '3306',
     user: 'SA',
     password: 'Admin@123',
     database: 'Testdb',
@@ -40,4 +40,4 @@ app.post('/login', (req, res) => {
     });
 });
 
-app.listen(3306, () => console.log('Server running on port 3306'));
+app.listen(3000, () => console.log('Server running on port 3000'));
