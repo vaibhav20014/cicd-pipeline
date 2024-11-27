@@ -3,7 +3,8 @@ services:
   app:
     build: .
     networks:
-      - my_app_network
+      - my_app_network:
+        - external: true
   nginx1: 
     build:
       context: .
