@@ -40,4 +40,4 @@ app.post('/login', (req, res) => {
     });
 });
 
-app.listen(3000, () => console.log('Server running on port 3000'));
+app.listen(3306, () => console.log('Server running on port 3306'));
