@@ -60,10 +60,7 @@ services:
       - DB_PORT=1433
     volumes:
       - .:/app
-    depends_on:
-      sql-server:
-        condition: service_healthy  # Ensures sql-server is healthy before starting my-api
-
+    
 networks:
   my_app_network:
     driver: bridge
