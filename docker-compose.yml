@@ -1,18 +1,12 @@
- 
 services:
-  app:
-    build: .
-    networks:
-      - my_app_network
-        
-  nginx1: 
+  nginx1:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: nginx1
-    ports: 
+    ports:
       - "8000:80"
-    volumes: 
+    volumes:
       - ./Signup.html:/usr/share/nginx/html/index.html
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
     networks:
@@ -43,7 +37,6 @@ services:
     networks:
       - my_app_network
 
-
   my-api:
     build:
       context: .
@@ -61,7 +54,7 @@ services:
       - DB_PORT=1433
     volumes:
       - .:/app
-    
+
 networks:
   my_app_network:
     driver: bridge
