@@ -54,6 +54,8 @@ services:
       - DB_PORT=1433
     volumes:
       - .:/app
+    depends_on:
+      - sql-server
 
 networks:
   my_app_network:
