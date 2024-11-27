@@ -6,7 +6,7 @@ const app = express();
 app.use(express.json());
 
 const db = mysql.createConnection({
-    host: '172.20.0.3:1433', 
+    host: 'sql_server_container', 
     user: 'SA',
     password: 'Admin@123',
     database: 'Testdb',
