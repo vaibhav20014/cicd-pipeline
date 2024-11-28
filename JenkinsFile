@@ -64,7 +64,7 @@ pipeline {
                         docker ps -a --filter "name=nginx1" --format "{{.ID}}" | xargs -r docker rm -f
                         docker ps -a --filter "name=nginx2" --format "{{.ID}}" | xargs -r docker rm -f
                         docker ps -a --filter "name=api-container" --format "{{.ID}}" | xargs -r docker rm -f
-                        docker ps -a --filter "name=sql_server_container" --format "{{.ID}}" | xargs -r docker rm -f
+                        
                     '''
                 }
             }
