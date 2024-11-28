@@ -74,6 +74,7 @@ pipeline {
             steps {
                 script {
                     echo "Running Docker Compose..."
+                    sh "docker-compose down"
                     sh "docker-compose up -d"
 
                     echo "Waiting for SQL Server to be ready..."
