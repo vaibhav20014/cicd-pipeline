@@ -14,6 +14,7 @@ RUN if [ "$NPM_UPDATE" = "true" ]; then \
 
 # Install dependencies
 RUN npm install
+RUN npm install mssql
 
 # Copy the rest of the application files
 COPY . .
