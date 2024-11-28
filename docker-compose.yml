@@ -25,17 +25,17 @@ services:
     networks:
       - my_app_network
 
-  sql-server:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: sql_server_container
-    environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: Admin@123
-      MSSQL_PID: Developer
-    ports:
-      - "1433:1433"
-    networks:
-      - my_app_network
+  # sql-server:
+  #   image: mcr.microsoft.com/mssql/server:2022-latest
+  #   container_name: sql_server_container
+  #   environment:
+  #     ACCEPT_EULA: "Y"
+  #     MSSQL_SA_PASSWORD: Admin@123
+  #     MSSQL_PID: Developer
+  #   ports:
+  #     - "1433:1433"
+  #   networks:
+  #     - my_app_network
 
   my-api:
     build:
