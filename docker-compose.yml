@@ -55,8 +55,8 @@ services:
       
     volumes:
       - .:/app
-    depends_on:
-      - sql-server
+    # depends_on:
+    #   - sql-server
 
 
 networks:
