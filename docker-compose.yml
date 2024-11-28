@@ -41,6 +41,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.node
+      args:
+        CACHEBUST: 1 # This will force a cache bust for every build
     container_name: api-container
     ports:
       - "3000:3000"
