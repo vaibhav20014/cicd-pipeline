@@ -1,25 +1,22 @@
-# Node.js API Dockerfile
+# Use the official Node.js 18 image as the base
 FROM node:18
 
 # Set the working directory inside the container
-WORKDIR /
+WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
-# Install npm latest and fix vulnerabilities if NPM_UPDATE is true
-RUN if [ "$NPM_UPDATE" = "true" ]; then \
-        npm install -g npm@latest && \
-        npm audit fix; \
-    fi
-
-# Install dependencies
-RUN npm install
-RUN npm install mssql
-
-# Copy the rest of the application files
+# Copy the application files (excluding node_modules via .dockerignore)
 COPY . .
 
-# Expose the API port
+# Remove existing node_modules and package-lock.json if present
+RUN rm -rf node_modules package-lock.json
+
+# Reinstall dependencies
+RUN npm install
+
+# Ensure mssql is installed explicitly
+RUN npm install mssql
+
+# Expose the port that the API will run on
 EXPOSE 3000
 
 # Start the API server
