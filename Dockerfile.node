@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . .
 
 # Remove existing node_modules and package-lock.json if present
-RUN rm -rf node_modules package-lock.json
+# RUN rm -rf node_modules package-lock.json
 
 # Reinstall dependencies
 RUN npm install
