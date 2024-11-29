@@ -39,7 +39,7 @@ services:
       MYSQL_PASSWORD: Admin@123
       MYSQL_BIND_ADDRESS: 0.0.0.0
     ports:
-      - "1433:3306"
+      - "3306:3306"
     networks:
       - my_app_network
     healthcheck:
