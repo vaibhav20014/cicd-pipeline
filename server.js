@@ -1,11 +1,11 @@
 const express = require('express');
-const sql = require('mssql');
+const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const app = express();
 app.use(express.json());
 
-const db = sql.createConnection({
+const db = mysql.createConnection({
     host: 'sql_server_container',
     port: '3306',
     user: 'SA',
