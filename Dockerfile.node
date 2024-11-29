@@ -13,8 +13,6 @@ COPY . .
 # Reinstall dependencies
 RUN npm install
 
-# Ensure mssql is installed explicitly
-RUN npm install mssql
 
 # Expose the port that the API will run on
 EXPOSE 3000
