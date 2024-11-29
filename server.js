@@ -21,7 +21,7 @@ app.post('/register', async (req, res) => {
         [username, email, passwordHash], 
         (err) => {
             if (err) return res.status(500).send(err.message);
-            res.status(201).send('User registered');
+            res.status(201).send('User registered'); 
         }
     );
 });
