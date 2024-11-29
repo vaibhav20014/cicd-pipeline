@@ -11,7 +11,7 @@ const db = sql.createConnection({
     user: 'SA',
     password: 'Admin@123',
     database: 'Testdb',
-});
+}); 
  
 // Register Endpoint
 app.post('/register', async (req, res) => {
