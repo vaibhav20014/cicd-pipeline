@@ -1,18 +1,23 @@
-# Use the official Node.js 18 image as the base
-FROM node:18
+# Use the official Node.js 18 image based on Alpine Linux as the base
+FROM node:18-alpine
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy the application files (excluding node_modules via .dockerignore)
-COPY . .
+# Install dependencies needed for building packages (if required)
+RUN apk add --no-cache --virtual .build-deps \
+    bash \
+    build-base \
+    && rm -rf /var/cache/apk/*
 
-# Remove existing node_modules and package-lock.json if present
-# RUN rm -rf node_modules package-lock.json
+# Copy package.json and package-lock.json (if exists) first to leverage Docker caching
+COPY package*.json ./
 
-# Reinstall dependencies
+# Install dependencies
 RUN npm install
 
+# Copy the rest of the application files (excluding node_modules via .dockerignore)
+COPY . .
 
 # Expose the port that the API will run on
 EXPOSE 3000
