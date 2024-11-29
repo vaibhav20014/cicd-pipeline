@@ -25,13 +25,14 @@ services:
     networks:
       - my_app_network
 
-    sql-server:
+  sql-server:
     image: mysql:8.0
     container_name: sql_server_container
     environment:
-      MYSQL_ROOT_PASSWORD: Admin@123  # Root password for MySQL
-      MYSQL_DATABASE: Testdb          
-      MYSQL_USER: sa
+      MYSQL_ROOT_PASSWORD: Admin@123      # Root password for MySQL
+      MYSQL_DATABASE: Testdb             # Database name
+      MYSQL_USER: sa                     # Non-root user
+      MYSQL_PASSWORD: Admin@123          # Password for the non-root user
     ports:
       - "3306:3306"
     networks:
@@ -46,18 +47,16 @@ services:
       - "3000:3000"
     networks:
       - my_app_network
-    # environment:
-    #   - DB_HOST=sql_server_container
-    #   - DB_PORT=3306
-    #   - DB_USER=SA
-    #   - DB_PASSWORD=Admin@123
-    #   - DB_NAME=Testdb
-      
+    environment:
+      DB_HOST: sql_server_container      # Database hostname
+      DB_PORT: 3306                      # MySQL port
+      DB_USER: sa                        # Non-root user
+      DB_PASSWORD: Admin@123             # Password for the non-root user
+      DB_NAME: Testdb                    # Database name
     volumes:
       - .:/app
     depends_on:
       - sql-server
-
 
 networks:
   my_app_network:
