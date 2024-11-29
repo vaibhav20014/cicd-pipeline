@@ -25,13 +25,13 @@ services:
     networks:
       - my_app_network
 
-  sql-server:
+    sql-server:
     image: mysql:8.0
     container_name: sql_server_container
     environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: Admin@123
-      MSSQL_PID: Developer
+      MYSQL_ROOT_PASSWORD: Admin@123  # Root password for MySQL
+      MYSQL_DATABASE: Testdb          
+      MYSQL_USER: sa
     ports:
       - "3306:3306"
     networks:
