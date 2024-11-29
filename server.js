@@ -7,7 +7,7 @@ app.use(express.json());
 
 const db = sql.createConnection({
     host: 'sql_server_container',
-    port: '1433',
+    port: '3306',
     user: 'SA',
     password: 'Admin@123',
     database: 'Testdb',
