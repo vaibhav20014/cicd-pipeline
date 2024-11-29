@@ -37,6 +37,7 @@ services:
       MYSQL_DATABASE: Testdb
       MYSQL_USER: sa
       MYSQL_PASSWORD: Admin@123
+      MYSQL_BIND_ADDRESS: 0.0.0.0
     ports:
       - "3306:3306"
     networks:
