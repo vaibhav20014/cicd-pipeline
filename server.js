@@ -5,15 +5,22 @@ const jwt = require('jsonwebtoken');
 const app = express();
 app.use(express.json());
 
-const mysql = require('mysql2');
 
 // Create MySQL connection
-const db = mysql.createConnection({
-    host: '192.168.0.3:3306',
-    port: '3306',
-    user: 'sa',
-    password: 'Admin@123',
-    database: 'Testdb',
+const connection = mysql.createConnection({
+  host: process.env.DB_HOST,  // Use the DB_HOST environment variable
+  port: process.env.DB_PORT,        // Ensure DB_PORT is 3306
+  user: process.env.DB_USER,      // Use the DB_USER environment variable
+  password: process.env.DB_PASSWORD,  // Use the DB_PASSWORD environment variable
+  database: process.env.DB_NAME   // Use the DB_NAME environment variable
+});
+
+connection.connect((err) => {
+  if (err) {
+    console.error('Database connection error:', err.stack);
+    return;
+  }
+  console.log('Connected to the database.');
 });
  
 // Register Endpoint
