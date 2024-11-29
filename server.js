@@ -9,7 +9,7 @@ app.use(express.json());
 // Create MySQL connection
 const dbConfig = {
     host: process.env.DB_HOST || '127.0.0.1',
-    port: process.env.DB_PORT || 3306,
+    port: process.env.DB_PORT || '3306',
     user: process.env.DB_USER || 'sa',
     password: process.env.DB_PASSWORD || 'Admin@123',
     database: process.env.DB_NAME || 'Testdb',
