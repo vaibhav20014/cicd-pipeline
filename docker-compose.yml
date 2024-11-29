@@ -68,7 +68,7 @@ services:
     depends_on:
       sql-server:
         condition: service_healthy
-    restart: unless-stopped
+
 
 networks:
   my_app_network:
