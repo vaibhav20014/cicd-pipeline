@@ -33,7 +33,7 @@ services:
       MSSQL_SA_PASSWORD: Admin@123
       MSSQL_PID: Developer
     ports:
-      - "1433:1433"
+      - "3306:3306"
     networks:
       - my_app_network
 
