@@ -7,13 +7,14 @@ app.use(express.json());
 
 
 // Create MySQL connection
-const connection = mysql.createConnection({
-  host: process.env.DB_HOST,  // Use the DB_HOST environment variable
-  port: process.env.DB_PORT,        // Ensure DB_PORT is 3306
-  user: process.env.DB_USER,      // Use the DB_USER environment variable
-  password: process.env.DB_PASSWORD,  // Use the DB_PASSWORD environment variable
-  database: process.env.DB_NAME   // Use the DB_NAME environment variable
-});
+const dbConfig = {
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 3306,
+    user: process.env.DB_USER || 'sa',
+    password: process.env.DB_PASSWORD || 'Admin@123',
+    database: process.env.DB_NAME || 'Testdb',
+};
+
 
 connection.connect((err) => {
   if (err) {
