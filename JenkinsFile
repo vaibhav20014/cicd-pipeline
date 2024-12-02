@@ -69,14 +69,6 @@ pipeline {
             }
         }
 
-        stage('Disable Firewall') {
-            steps {
-                script {
-                    echo 'Disabling firewall...'
-                    sh 'ufw disable'
-                }
-            }
-        }
 
         stage('Run Docker Compose') {
             steps {
