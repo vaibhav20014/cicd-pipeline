@@ -73,7 +73,7 @@ pipeline {
             steps {
                 script {
                     echo 'Disabling firewall...'
-                    sh 'sudo ufw disable'
+                    sh 'ufw disable'
                 }
             }
         }
