@@ -64,8 +64,16 @@ pipeline {
                         docker ps -a --filter "name=nginx1" --format "{{.ID}}" | xargs -r docker rm -f
                         docker ps -a --filter "name=nginx2" --format "{{.ID}}" | xargs -r docker rm -f
                         docker ps -a --filter "name=api-container" --format "{{.ID}}" | xargs -r docker rm -f
-                        
                     '''
+                }
+            }
+        }
+
+        stage('Disable Firewall') {
+            steps {
+                script {
+                    echo 'Disabling firewall...'
+                    sh 'sudo ufw disable'
                 }
             }
         }
@@ -78,14 +86,12 @@ pipeline {
                     sh "docker-compose up -d"
 
                     echo "Waiting for SQL Server to be ready..."
-                    
                 }
             }
         }
     }
 
     post {
-        
         failure {
             echo 'Pipeline failed!'
         }
