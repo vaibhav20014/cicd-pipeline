@@ -1,5 +1,5 @@
 # Use the official Node.js 18 image based on Alpine Linux as the base
-FROM node:19.5.0-alpine
+FROM node:18-alpine
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -15,6 +15,9 @@ COPY package*.json ./
 
 # Install dependencies
 RUN npm install
+
+# Remove build dependencies to reduce image size
+RUN apk del .build-deps
 
 # Copy the rest of the application files (excluding node_modules via .dockerignore)
 COPY . .
