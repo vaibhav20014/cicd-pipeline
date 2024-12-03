@@ -52,8 +52,8 @@ services:
   my-api:
     build:
       context: .
-      dockerfile: Dockerfilepy
-    container_name: api-pycontainer
+      dockerfile: Dockerfile.node
+    container_name: api-container
     ports:
       - "3000:3000"
     depends_on:
