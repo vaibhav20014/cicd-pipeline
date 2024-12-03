@@ -10,7 +10,7 @@ const db = mysql.createConnection({
     port: '3306',
     user: 'sa',
     password: 'Admin@123',
-    database: 'Testdb', 
+    database: 'Testdb',  
 });
  
 // Register Endpoint
