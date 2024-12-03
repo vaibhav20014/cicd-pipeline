@@ -52,24 +52,16 @@ services:
   my-api:
     build:
       context: .
-      dockerfile: Dockerfile.node
+      dockerfile: Dockerfilepy
     container_name: api-container
     ports:
       - "3000:3000"
-    networks:
-      - my_app_network
-    environment:
-      DB_HOST: sql_server_container
-      DB_PORT: 3306
-      DB_USER: sa
-      DB_PASSWORD: Admin@123
-      DB_NAME: Testdb
-    volumes:
-      - .:/app
     depends_on:
       sql-server:
         condition: service_healthy
-
+    networks:
+      - my_app_network
+    restart: unless-stopped
 
 networks:
   my_app_network:
