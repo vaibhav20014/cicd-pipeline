@@ -7,10 +7,10 @@ app.use(express.json());
 
 const db = mysql.createConnection({
     host: 'sql_server_container',
-    port: '1433',
-    user: 'SA',
+    port: '3306',
+    user: 'sa',
     password: 'Admin@123',
-    database: 'Testdb',
+    database: 'Testdb', 
 });
  
 // Register Endpoint
