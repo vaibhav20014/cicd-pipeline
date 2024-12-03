@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Install Docker Compose') {
             steps { 
-                script {
+                script { 
                     // Check if docker-compose is installed
                     def dockerComposeInstalled = sh(script: 'which docker-compose', returnStdout: true).trim()
                     if (!dockerComposeInstalled) {
