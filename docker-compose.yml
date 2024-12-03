@@ -53,7 +53,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfilepy
-    container_name: api-container
+    container_name: api-pycontainer
     ports:
       - "3000:3000"
     depends_on:
