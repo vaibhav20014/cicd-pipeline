@@ -1,67 +1,59 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from passlib.context import CryptContext
-import mysql.connector
+from sqlmodel import SQLModel, Field, Session, create_engine, select
 
 app = FastAPI()
 
 # Password hashing configuration
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Database connection settings (hardcoded)
-db_config = {
-    "host": "sql_server_container",
-    "port": 3306,
-    "user": "sa",
-    "password": "Admin@123",  # Replace with your actual root password
-    "database": "Testdb"
-}
+# Database connection settings (using SQLModel's connection string format)
+DATABASE_URL = "mysql+mysqlconnector://sa:Admin@123@sql_server_container:3306/Testdb"
 
-# Database connection function
-def get_database_connection():
-    return mysql.connector.connect(**db_config)
+# Database connection setup
+engine = create_engine(DATABASE_URL)
 
-# User schema for requests
-class User(BaseModel):
+# Define the User model using SQLModel (this will map to your users table in MySQL)
+class User(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True)
+    username: str
+    email: str
+    password_hash: str
+
+# Create the database tables if they don't exist already
+SQLModel.metadata.create_all(engine)
+
+# User schema for requests (for validation purposes)
+class UserCreate(BaseModel):
     username: str
     email: str
     password: str
 
 @app.post("/register")
-async def register_user(user: User):
+async def register_user(user: UserCreate):
     hashed_password = pwd_context.hash(user.password)
-    connection = get_database_connection()
-    cursor = connection.cursor()
+    # Create a new user instance
+    new_user = User(username=user.username, email=user.email, password_hash=hashed_password)
 
-    try:
-        query = "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)"
-        cursor.execute(query, (user.username, user.email, hashed_password))
-        connection.commit()
+    # Create a session and insert the user into the database
+    with Session(engine) as session:
+        session.add(new_user)
+        session.commit()
         return {"message": "User registered successfully"}
-    except Exception as e:
-        return {"error": str(e)}
-    finally:
-        cursor.close()
-        connection.close()
 
 @app.post("/login")
 async def login_user(email: str, password: str):
-    connection = get_database_connection()
-    cursor = connection.cursor(dictionary=True)
+    with Session(engine) as session:
+        # Query for the user by email
+        statement = select(User).where(User.email == email)
+        user = session.exec(statement).first()
 
-    try:
-        query = "SELECT * FROM users WHERE email = %s"
-        cursor.execute(query, (email,))
-        user = cursor.fetchone()
-        if user and pwd_context.verify(password, user["password_hash"]):
+        if user and pwd_context.verify(password, user.password_hash):
             return {"message": "Login successful"}
         return {"error": "Invalid credentials"}
-    except Exception as e:
-        return {"error": str(e)}
-    finally:
-        cursor.close()
-        connection.close()
 
 @app.get("/")
 async def root():
     return {"message": "FastAPI is running"}
+
