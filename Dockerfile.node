@@ -14,7 +14,7 @@ RUN apk add --no-cache --virtual .build-deps \
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN sudo npm install
 
 # Copy the rest of the application files (excluding node_modules via .dockerignore)
 COPY . .
