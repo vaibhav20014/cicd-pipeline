@@ -1,5 +1,5 @@
 const express = require('express');
-const mysql = require('mssql');
+const mysql = require('mysql');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const app = express();
