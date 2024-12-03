@@ -1,16 +1,19 @@
+version: '3.8'
+
 services:
   nginx1:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: nginx1
-    ports:
+    ports: 
       - "8000:80"
     volumes:
       - ./Signup.html:/usr/share/nginx/html/index.html
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
     networks:
       - my_app_network
+    restart: unless-stopped
 
   nginx2:
     build:
@@ -24,40 +27,41 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
     networks:
       - my_app_network
+    restart: unless-stopped
 
   sql-server:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: mysql:8.0
     container_name: sql_server_container
     environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: Admin@123
-      MSSQL_PID: Developer
+      MYSQL_ROOT_PASSWORD: Admin@123
+      MYSQL_DATABASE: Testdb
+      MYSQL_USER: sa
+      MYSQL_PASSWORD: Admin@123
+      MYSQL_BIND_ADDRESS: 0.0.0.0
     ports:
-      - "1433:1433"
+      - "3306:3306"
     networks:
       - my_app_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
 
   my-api:
     build:
       context: .
-      dockerfile: Dockerfile.node
-    container_name: api-container
+      dockerfile: Dockerfilepy
+    container_name: api-pycontainer
     ports:
       - "3000:3000"
+    depends_on:
+      sql-server:
+        condition: service_healthy
     networks:
       - my_app_network
-    # environment:
-    #   - DB_HOST=sql_server_container
-    #   - DB_PORT=3306
-    #   - DB_USER=SA
-    #   - DB_PASSWORD=Admin@123
-    #   - DB_NAME=Testdb
-      
-    volumes:
-      - .:/app
-    depends_on:
-      - sql-server
-
+    restart: unless-stopped
 
 networks:
   my_app_network:
