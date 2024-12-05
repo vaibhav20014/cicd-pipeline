@@ -56,9 +56,9 @@ services:
     container_name: api-container
     ports:
       - "3000:3000"
-    depends_on:
-      sql-server:
-        condition: service_healthy
+    # depends_on:
+    #   sql-server:
+    #     condition: service_healthy
     networks:
       - my_app_network
     restart: unless-stopped
