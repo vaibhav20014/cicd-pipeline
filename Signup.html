@@ -1,78 +1,60 @@
-<!DOCTYPE html>
-<html lang="en"> 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In</title>
-    <link rel="stylesheet" href="/Signup.css">
-</head>
-<body>
-    <div class="container">
-        <div class="login-box"> 
-            <div class="image-container">
-                <img src="/Media/Logo.png" alt="Login Image"> 
-            </div>
-            <h2>Sign In</h2>  
-          <form id="authForm">
-        <div class="input-group">
-            <input type="email" id="email" placeholder="Enter your Email" required>
-        </div>
+const express = require('express');
+const mysql = require('mysql');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const path = require('path');
 
-        <div class="input-group">
-            <input type="password" id="password" placeholder="Enter your Password" required>
-        </div>
-        <button type="button" id="signInButton">Sign In</button>
-        <button type="button" id="signUpButton">Sign Up</button>
-           </form>
-        </div>
-    </div>
-    <script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-auth.js"></script>
-    <script src="/config.js"></script>
+const app = express();
+app.use(express.json());
 
-    
-    <script>
-        
-        const firebaseConfig = window.firebaseConfig;
-        firebase.initializeApp(firebaseConfig);
+// Database connection
+const db = mysql.createConnection({
+    host: 'sql_server_container',
+    port: '3306',
+    user: 'sa',
+    password: 'Admin@123',
+    database: 'Testdb',
+});
 
-        // Get references to the email and password inputs, and the sign in and sign up buttons
-        var emailInput = document.getElementById("email");
-        var passwordInput = document.getElementById("password");
-        var signInButton = document.getElementById("signInButton");
-        var signUpButton = document.getElementById("signUpButton");
+// Serve static files (HTML, CSS, JS, etc.) from the same directory
+app.use(express.static(__dirname));
 
-        // Sign In Button Click Event
-        signInButton.addEventListener("click", function() {
-            var email = emailInput.value;
-            var password = passwordInput.value;
-            
-            firebase.auth().signInWithEmailAndPassword(email, password)
-                .then(function(userCredential) {
-                    // Redirect the user to test.html on successful sign-in
-                    window.location.href = "test.html";
-                })
-                .catch(function(error) {
-                    // Show an error message
-                    alert("Sign In Error: " + error.message);
-                });
-        });
+// Register Endpoint
+app.post('/register', async (req, res) => {
+    const { email, password } = req.body;
+    const passwordHash = await bcrypt.hash(password, 10);
 
-        // Sign Up Button Click Event
-        signUpButton.addEventListener("click", function() {
-            var email = emailInput.value;
-            var password = passwordInput.value;
-            
-            firebase.auth().createUserWithEmailAndPassword(email, password)
-                .then(function(userCredential) {
-                    // Redirect the user to test.html on successful sign-up
-                    window.location.href = "test.html";
-                })
-                .catch(function(error) {
-                    // Show an error message
-                    alert("Sign Up Error: " + error.message);
-                });
-        });
-    </script>
-</body>
-</html>
+    db.query(
+        'INSERT INTO users (email, password_hash) VALUES (?, ?)',
+        [email, passwordHash],
+        (err) => {
+            if (err) return res.status(500).send(err.message);
+            res.status(201).send('User registered successfully');
+        }
+    );
+});
+
+// Login Endpoint
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+
+    db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
+        if (err) return res.status(500).send(err.message);
+        if (results.length === 0) return res.status(401).send('User not found');
+
+        const user = results[0];
+        const isMatch = await bcrypt.compare(password, user.password_hash);
+        if (!isMatch) return res.status(401).send('Invalid credentials');
+
+        const token = jwt.sign({ id: user.id }, 'secretKey', { expiresIn: '1h' });
+        res.status(200).json({ token });
+    });
+});
+
+// Default route to serve index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Start the server
+app.listen(3000, () => console.log('Server running on http://localhost:3000'));
