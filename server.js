@@ -15,10 +15,10 @@ const db = mysql.createConnection({
  
 // Register Endpoint
 app.post('/register', async (req, res) => {
-    const { username, email, password } = req.body;
+    const { email, password } = req.body;
     const passwordHash = await bcrypt.hash(password, 10);
-    db.query('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)', 
-        [username, email, passwordHash], 
+    db.query('INSERT INTO users (email, password_hash) VALUES (?, ?)', 
+        [email, passwordHash], 
         (err) => {
             if (err) return res.status(500).send(err.message);
             res.status(201).send('User registered');
