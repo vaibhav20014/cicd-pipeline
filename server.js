@@ -2,23 +2,35 @@ const express = require('express');
 const mysql = require('mysql');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const cors = require('cors'); // Import the CORS middleware
+
 const app = express();
 app.use(express.json());
 
+// Add CORS middleware
+const corsOptions = {
+    origin: '*', // Allow requests from all origins
+    methods: ['GET', 'POST'], // Allow specific HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
+};
+app.use(cors(corsOptions)); // Use the CORS middleware
+
+// Database connection
 const db = mysql.createConnection({
     host: 'sql_server_container',
     port: '3306',
     user: 'sa',
     password: 'Admin@123',
-    database: 'Testdb',  
+    database: 'Testdb',
 });
- 
+
 // Register Endpoint
 app.post('/register', async (req, res) => {
     const { email, password } = req.body;
     const passwordHash = await bcrypt.hash(password, 10);
-    db.query('INSERT INTO users (email, password_hash) VALUES (?, ?)', 
-        [email, passwordHash], 
+    db.query(
+        'INSERT INTO users (email, password_hash) VALUES (?, ?)',
+        [email, passwordHash],
         (err) => {
             if (err) return res.status(500).send(err.message);
             res.status(201).send('User registered');
@@ -40,4 +52,5 @@ app.post('/login', (req, res) => {
     });
 });
 
+// Start server
 app.listen(3000, () => console.log('Server running on port 3000'));
