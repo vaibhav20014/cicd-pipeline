@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_USERNAME = 'israni141'
-        DOCKERHUB_PASSWORD = 'Himnish123'
+        DOCKERHUB_PASSWORD = 'dckr_pat_IpyOZ8wV2Ycx6C7P2fDBWqcIlEI'
         DOCKERHUB_REPO = 'israni141/devops'
     }
 
@@ -76,15 +76,21 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    echo "Deploying to Kubernetes using YAML files..."
-                    sh '''
-                        kubectl --kubeconfig kube.conf apply -f nginxbuld.yaml
-                    '''
-                }
-            }
+    steps {
+        script {
+            echo "Cleaning up existing Kubernetes pods..."
+            sh '''
+                kubectl --kubeconfig kube.conf delete pod nginx-api-pod --ignore-not-found=true
+            '''
+            
+            echo "Deploying to Kubernetes using YAML files..."
+            sh '''
+                kubectl --kubeconfig kube.conf apply -f nginxbuild.yaml
+            '''
         }
+    }
+}
+
 
         stage('Clean Up Docker Hub Images') {
             steps {
