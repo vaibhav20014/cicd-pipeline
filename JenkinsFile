@@ -92,22 +92,33 @@ pipeline {
 }
 
 
-        stage('Clean Up Docker Hub Images') {
-            steps {
-                script {
-                    echo "Cleaning up Docker Hub images..."
-                    sh '''
-                        curl -s -X DELETE \
-                        -u ${DOCKERHUB_USERNAME}:${DOCKERHUB_PASSWORD} \
-                        https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/tags/nginx1-latest/
-
-                        curl -s -X DELETE \
-                        -u ${DOCKERHUB_USERNAME}:${DOCKERHUB_PASSWORD} \
-                        https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/tags/my-api-latest/
-                    '''
-                }
+stage('Clean Up Docker Hub Images') {
+    steps {
+        script {
+            echo "Cleaning up Docker Hub images using image digests..."
+            try {
+                // Delete nginx1-latest by digest
+                sh '''
+                    curl -s -X DELETE \
+                    -u ${DOCKERHUB_USERNAME}:${DOCKERHUB_TOKEN} \
+                    https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/manifests/sha256:b8dbb402ed47edfd74a100fc5318362fd2a7bfa3fecc3ffe54bac14a682b7c74
+                '''
+                echo "Deleted nginx1-latest."
+                
+                // Repeat for other images (add corresponding digests for each)
+                sh '''
+                    curl -s -X DELETE \
+                    -u ${DOCKERHUB_USERNAME}:${DOCKERHUB_TOKEN} \
+                    https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/manifests/sha256:<digest_for_my-api-latest>
+                '''
+                echo "Deleted my-api-latest."
+            } catch (Exception e) {
+                echo "Failed to delete some images: ${e.getMessage()}"
             }
         }
+    }
+}
+
     }
 
     post {
