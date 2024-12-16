@@ -1,6 +1,12 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKERHUB_USERNAME = 'israni141'
+        DOCKERHUB_PASSWORD = 'Himnish123'
+        DOCKERHUB_REPO = 'israni141/devops'
+    }
+
     stages {
         stage('Install Docker Compose') {
             steps { 
@@ -69,15 +75,30 @@ pipeline {
             }
         }
 
-
-        stage('Run Docker Compose') {
+        stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    echo "Running Docker Compose..."
-                    sh "docker-compose down"
-                    sh "docker-compose up -d"
+                    echo "Deploying to Kubernetes using YAML files..."
+                    sh '''
+                        kubectl --kubeconfig kube.conf apply -f ngnixbuld.yaml
+                    '''
+                }
+            }
+        }
 
-                    echo "Waiting for SQL Server to be ready..."
+        stage('Clean Up Docker Hub Images') {
+            steps {
+                script {
+                    echo "Cleaning up Docker Hub images..."
+                    sh '''
+                        curl -s -X DELETE \
+                        -u ${DOCKERHUB_USERNAME}:${DOCKERHUB_PASSWORD} \
+                        https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/tags/nginx1-latest/
+
+                        curl -s -X DELETE \
+                        -u ${DOCKERHUB_USERNAME}:${DOCKERHUB_PASSWORD} \
+                        https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/tags/my-api-latest/
+                    '''
                 }
             }
         }
