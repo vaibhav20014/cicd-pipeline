@@ -85,7 +85,7 @@ pipeline {
             
             echo "Deploying to Kubernetes using YAML files..."
             sh '''
-                kubectl --kubeconfig kube.conf apply -f nginxbuild.yaml
+                kubectl --kubeconfig kube.conf apply -f nginxbuld.yaml
             '''
         }
     }
