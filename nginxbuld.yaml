@@ -9,9 +9,11 @@ spec:
   containers:
     - name: nginx1
       image: israni141/devops:nginx1-latest
+      imagePullPolicy: Always
       ports:
         - containerPort: 8000
     - name: api
       image: israni141/devops:my-api-latest
+      imagePullPolicy: Always
       ports:
         - containerPort: 3000
