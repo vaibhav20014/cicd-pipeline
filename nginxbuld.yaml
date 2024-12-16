@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-api-pod
+  labels:
+    app: nginx-api  # You can label it as nginx-api or any name that represents both containers
+    type: web-app   # An additional label to describe the purpose (optional)
+spec:
+  containers:
+    - name: nginx1
+      image: israni141/devops:nginx1-latest
+      ports:
+        - containerPort: 8000
+    - name: api
+      image: israni141/devops:my-api-latest
+      ports:
+        - containerPort: 3000

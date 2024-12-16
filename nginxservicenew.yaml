@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-api-service
+  labels:
+    app: nginx-api
+spec:
+  selector:
+    app: nginx-api  # Matches the pod's label
+  ports:
+    - name: nginx-port
+      protocol: TCP
+      port: 80          # Exposes the NGINX service on port 80
+      targetPort: 8000  # Maps to the containerPort of nginx1 in the pod
+    - name: api-port
+      protocol: TCP
+      port: 3000        # Exposes the API service on port 3000
+      targetPort: 3000  # Maps to the containerPort of the API in the pod
+  type: NodePort  # Can also be LoadBalancer if supported by your environment
