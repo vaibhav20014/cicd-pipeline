@@ -3,122 +3,76 @@ pipeline {
 
     environment {
         DOCKERHUB_USERNAME = 'israni141'
-        DOCKERHUB_PASSWORD = 'dckr_pat_IpyOZ8wV2Ycx6C7P2fDBWqcIlEI'
+        DOCKERHUB_TOKEN = 'dckr_pat_IpyOZ8wV2Ycx6C7P2fDBWqcIlEI' // Use token for secure authentication
         DOCKERHUB_REPO = 'israni141/devops'
     }
 
     stages {
-        stage('Install Docker Compose') {
-            steps { 
-                script { 
-                    // Check if docker-compose is installed
-                    def dockerComposeInstalled = sh(script: 'which docker-compose', returnStdout: true).trim()
-                    if (!dockerComposeInstalled) {
-                        echo 'Docker Compose is not installed. Installing...'
-                        // Install Docker Compose
+        stage('Delete Old Docker Hub Images') {
+            steps {
+                script {
+                    echo "Deleting old Docker Hub images..."
+                    try {
                         sh '''
-                            sudo curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-                            sudo chmod +x /usr/local/bin/docker-compose
+                            curl -s -X DELETE \
+                            -u ${DOCKERHUB_USERNAME}:${DOCKERHUB_TOKEN} \
+                            https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/manifests/sha256:b8dbb402ed47edfd74a100fc5318362fd2a7bfa3fecc3ffe54bac14a682b7c74
                         '''
-                    } else {  
-                        echo 'Docker Compose is already installed.'
+                        echo "Old image deleted: nginx1-latest"
+                    } catch (Exception e) {
+                        echo "Failed to delete old image: ${e.getMessage()}"
                     }
                 }
             }
         }
 
-        stage('Clone Repository') {
-            steps {
-                git (
-                    url: 'https://github.com/vaibhav20014/cicd-pipeline.git',
-                    branch: 'main',
-                    credentialsId: 'da5c97ea-6aae-4918-9418-7104dc229832'
-                )
-            }
-        }
-
-        stage('SonarQube Analysis') {
+        stage('Build and Push Docker Image') {
             steps {
                 script {
-                    def sonarqubeScannerHome = tool name: 'Sonar'
-
-                    withCredentials([string(credentialsId: 'Sonar', variable: 'sonarLogin')]) {
-                        sh """
-                            ${sonarqubeScannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=cicd-pipeline \
-                            -Dsonar.host.url=http://103.251.252.115:9000 \
-                            -Dsonar.login=${sonarLogin}
-                        """
-                    }
-                }
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                script {
-                    echo 'No tests defined for this project.'
-                }
-            }
-        }
-
-        stage('Clean Up Existing Containers') {
-            steps {
-                script {
-                    // Clean up any existing containers with conflicting names
+                    echo "Building and pushing a new Docker image..."
                     sh '''
-                        docker ps -a --filter "name=nginx1" --format "{{.ID}}" | xargs -r docker rm -f
-                        docker ps -a --filter "name=nginx2" --format "{{.ID}}" | xargs -r docker rm -f
-                        docker ps -a --filter "name=api-container" --format "{{.ID}}" | xargs -r docker rm -f
+                        docker build -t ${DOCKERHUB_REPO}:nginx1-latest .
+                        docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_TOKEN}
+                        docker push ${DOCKERHUB_REPO}:nginx1-latest
                     '''
                 }
             }
         }
 
         stage('Deploy to Kubernetes') {
-    steps {
-        script {
-            echo "Cleaning up existing Kubernetes pods..."
-            sh '''
-                kubectl --kubeconfig kube.conf delete pod nginx-api-pod --ignore-not-found=true
-            '''
-            
-            echo "Deploying to Kubernetes using YAML files..."
-            sh '''
-                kubectl --kubeconfig kube.conf apply -f nginxbuld.yaml
-            '''
-        }
-    }
-}
+            steps {
+                script {
+                    echo "Deleting old Kubernetes pod..."
+                    sh '''
+                        kubectl --kubeconfig kube.conf delete pod nginx-api-pod --ignore-not-found=true
+                    '''
 
-
-stage('Clean Up Docker Hub Images') {
-    steps {
-        script {
-            echo "Cleaning up Docker Hub images using image digests..."
-            try {
-                // Delete nginx1-latest by digest
-                sh '''
-                    curl -s -X DELETE \
-                    -u ${DOCKERHUB_USERNAME}:${DOCKERHUB_TOKEN} \
-                    https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/manifests/sha256:b8dbb402ed47edfd74a100fc5318362fd2a7bfa3fecc3ffe54bac14a682b7c74
-                '''
-                echo "Deleted nginx1-latest."
-                
-                // Repeat for other images (add corresponding digests for each)
-                sh '''
-                    curl -s -X DELETE \
-                    -u ${DOCKERHUB_USERNAME}:${DOCKERHUB_TOKEN} \
-                    https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/manifests/sha256:<digest_for_my-api-latest>
-                '''
-                echo "Deleted my-api-latest."
-            } catch (Exception e) {
-                echo "Failed to delete some images: ${e.getMessage()}"
+                    echo "Applying Kubernetes deployment..."
+                    sh '''
+                        kubectl --kubeconfig kube.conf apply -f nginxbuld.yaml
+                    '''
+                }
             }
         }
-    }
-}
 
+        stage('Optional Cleanup of Docker Hub Images') {
+            steps {
+                script {
+                    echo "Performing optional cleanup of Docker Hub images..."
+                    try {
+                        // Clean additional old tags or images by digest
+                        sh '''
+                            curl -s -X DELETE \
+                            -u ${DOCKERHUB_USERNAME}:${DOCKERHUB_TOKEN} \
+                            https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/manifests/sha256:<digest_for_my-api-latest>
+                        '''
+                        echo "Optional cleanup completed."
+                    } catch (Exception e) {
+                        echo "Optional cleanup failed: ${e.getMessage()}"
+                    }
+                }
+            }
+        }
     }
 
     post {
