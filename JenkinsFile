@@ -31,7 +31,7 @@ pipeline {
                 script {
                     echo "Building and pushing a new NGINX Docker image..."
                     sh '''
-                        docker build -t ${DOCKERHUB_REPO}:nginx1-latest -f nginx.Dockerfile .
+                        docker build -t ${DOCKERHUB_REPO}:nginx1-latest -f Dockerfile .
                         docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_TOKEN}
                         docker push ${DOCKERHUB_REPO}:nginx1-latest
                     '''
