@@ -17,7 +17,7 @@ app.use(cors(corsOptions)); // Use the CORS middleware
 
 // Database connection
 const db = mysql.createConnection({
-    host: 'sql-server-service',
+    host: 'mysql-pod',
     port: '3306',
     user: 'sa',
     password: 'Admin@123',
