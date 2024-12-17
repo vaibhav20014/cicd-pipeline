@@ -6,7 +6,7 @@ pipeline {
         DOCKERHUB_TOKEN = 'dckr_pat_IpyOZ8wV2Ycx6C7P2fDBWqcIlEI' // Use token for secure authentication
         DOCKERHUB_REPO = 'israni141/devops'
     }
- 
+
     stages {
         stage('Delete Old Docker Hub Images') {
             steps {
@@ -26,14 +26,27 @@ pipeline {
             }
         }
 
-        stage('Build and Push Docker Image') {
+        stage('Build and Push NGINX Docker Image') {
             steps {
                 script {
-                    echo "Building and pushing a new Docker image..."
+                    echo "Building and pushing a new NGINX Docker image..."
                     sh '''
-                        docker build -t ${DOCKERHUB_REPO}:nginx1-latest .
+                        docker build -t ${DOCKERHUB_REPO}:nginx1-latest -f nginx.Dockerfile .
                         docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_TOKEN}
                         docker push ${DOCKERHUB_REPO}:nginx1-latest
+                    '''
+                }
+            }
+        }
+
+        stage('Build and Push API Docker Image') {
+            steps {
+                script {
+                    echo "Building and pushing a new API Docker image..."
+                    sh '''
+                        docker build -t ${DOCKERHUB_REPO}:my-api-latest -f Dockerfile.node .
+                        docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_TOKEN}
+                        docker push ${DOCKERHUB_REPO}:my-api-latest
                     '''
                 }
             }
@@ -60,7 +73,6 @@ pipeline {
                 script {
                     echo "Performing optional cleanup of Docker Hub images..."
                     try {
-                        // Clean additional old tags or images by digest
                         sh '''
                             curl -s -X DELETE \
                             -u ${DOCKERHUB_USERNAME}:${DOCKERHUB_TOKEN} \
