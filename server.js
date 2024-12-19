@@ -23,7 +23,7 @@ const db = mysql.createConnection({
     password: 'Admin@123',
     database: 'Testdb',
 });
-
+ 
 // Register Endpoint
 app.post('/register', async (req, res) => {
     const { email, password } = req.body;
