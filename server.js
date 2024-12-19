@@ -6,7 +6,7 @@ const cors = require('cors'); // Import the CORS middleware
 
 const app = express();
 app.use(express.json());
-
+ 
 // Add CORS middleware
 const corsOptions = {
     origin: '*', // Allow requests from all origins
