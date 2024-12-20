@@ -29,25 +29,25 @@ services:
       - my_app_network
     restart: unless-stopped
 
-  # sql-server:
-  #   image: mysql:8.0
-  #   container_name: sql_server_container
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: Admin@123
-  #     MYSQL_DATABASE: Testdb
-  #     MYSQL_USER: sa
-  #     MYSQL_PASSWORD: Admin@123
-  #     MYSQL_BIND_ADDRESS: 0.0.0.0
-  #   ports:
-  #     - "3306:3306"
-  #   networks:
-  #     - my_app_network
-  #   healthcheck:
-  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 3
-  #   restart: unless-stopped
+  sql-server:
+    image: mysql:8.0
+    container_name: sql_server_container
+    environment:
+      MYSQL_ROOT_PASSWORD: Admin@123
+      MYSQL_DATABASE: Testdb
+      MYSQL_USER: sa
+      MYSQL_PASSWORD: Admin@123
+      MYSQL_BIND_ADDRESS: 0.0.0.0
+    ports:
+      - "3306:3306"
+    networks:
+      - my_app_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
 
   my-api:
     build:
