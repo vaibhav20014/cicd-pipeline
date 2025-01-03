@@ -47,36 +47,13 @@ app.post('/register', async (req, res) => {
 // Login Endpoint
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
-
-    // Validate input
-    if (!email || !password) {
-        return res.status(400).send('Email and password are required');
-    }
-
-    // Query the database to find the user by email
     db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
-        if (err) {
-            console.error("Error querying the database:", err); // Log database errors
-            return res.status(500).send('Internal server error');
-        }
-
-        if (results.length === 0) {
-            return res.status(401).send('User not found');
-        }
-
+        if (err) return res.status(500).send(err.message);
+        if (results.length === 0) return res.status(401).send('User not found');
         const user = results[0];
-
-        // Check if password matches the stored hashed password
         const isMatch = await bcrypt.compare(password, user.password_hash);
-
-        if (!isMatch) {
-            return res.status(401).send('Invalid credentials');
-        }
-
-        // Generate JWT token with a short expiration time (e.g., 1 hour)
-        const token = jwt.sign({ id: user.id }, 'secretKey', { expiresIn: '1h' });
-
-        // Send response with the token
+        if (!isMatch) return res.status(401).send('Invalid credentials');
+        const token = jwt.sign({ id: user.id }, 'secretKey');
         res.status(200).json({ token });
     });
 });
