@@ -27,6 +27,11 @@ const db = mysql.createConnection({
 // Register Endpoint
 app.post('/register', async (req, res) => {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).send('Email and password are required');
+    }
+
     const passwordHash = await bcrypt.hash(password, 10);
 
     db.query(
@@ -34,14 +39,17 @@ app.post('/register', async (req, res) => {
         [email, passwordHash],
         (err, result) => {
             if (err) {
-                console.error("Error inserting data:", err); // Log the error
+                console.error("Error inserting data:", err);
+                if (err.code === 'ER_DUP_ENTRY') {
+                    return res.status(409).send('Email already exists');
+                }
                 return res.status(500).send('Error saving user to database');
             }
-            console.log("User successfully registered:", result);
             res.status(201).send('User registered');
         }
     );
 });
+
 
 
 // Login Endpoint
