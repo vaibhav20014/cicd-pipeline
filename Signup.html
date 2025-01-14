@@ -42,11 +42,6 @@
             height: auto;
         }
 
-        .form-container {
-            max-width: 300px;
-            width: 100%;
-        }
-
         .input-group {
             margin-bottom: 15px;
         }
@@ -82,16 +77,22 @@
     <div class="container">
         <div class="login-box">
             <div class="image-container">
-                <img src="/Media/Logo.png" alt="Login Image">
+                <img src="Media/Logo.png" alt="Login Image">
             </div>
             <h2>!!Sign Now@</h2>
             <form id="authForm">
                 <div class="input-group">
-                    <input type="email" id="email" placeholder="Enter your Email" required>
+                    <label>
+                        <span>Email:</span>
+                        <input type="email" id="email" placeholder="Enter your Email" required>
+                    </label>
                 </div>
 
                 <div class="input-group">
-                    <input type="password" id="password" placeholder="Enter your Password" required>
+                    <label>
+                        <span>Password:</span>
+                        <input type="password" id="password" placeholder="Enter your Password" required>
+                    </label>
                 </div>
                 <button type="button" id="signInButton">Sign In</button>
                 <button type="button" id="signUpButton">Sign Up</button>
@@ -101,70 +102,75 @@
 
     <script>
         // Get references to the email and password inputs, and the sign-in and sign-up buttons
-        var emailInput = document.getElementById("email");
-        var passwordInput = document.getElementById("password");
-        var signInButton = document.getElementById("signInButton");
-        var signUpButton = document.getElementById("signUpButton");
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
+        const signInButton = document.getElementById("signInButton");
+        const signUpButton = document.getElementById("signUpButton");
 
         // Function to handle API errors
         function handleError(error) {
             alert("Error: " + error.message);
         }
 
+        // Validate form inputs
+        function validateInputs(email, password) {
+            if (!email || !password) {
+                alert("Please fill in all fields.");
+                return false;
+            }
+            return true;
+        }
+
         // Sign In Button Click Event
-        signInButton.addEventListener("click", function () {
-            var email = emailInput.value;
-            var password = passwordInput.value;
+        signInButton.addEventListener("click", () => {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!validateInputs(email, password)) return;
 
             // Send a POST request to your login endpoint
-            fetch('http://103.251.252.106:31823/login', {
+            fetch('/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    email: email,
-                    password: password
+                body: JSON.stringify({ email, password }),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.token) {
+                        // Save the token securely
+                        localStorage.setItem('authToken', data.token);
+                        // Redirect to test.html
+                        window.location.href = "test.html";
+                    } else {
+                        alert("Sign In Error: Invalid credentials");
+                    }
                 })
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Check if login is successful (receive token)
-                if (data.token) {
-                    // Save the token
-                    localStorage.setItem('authToken', data.token);
-                    // Redirect the user to test.html on successful sign-in
-                    window.location.href = "test.html";
-                } else {
-                    alert("Sign In Error: Invalid credentials");
-                }
-            })
-            .catch(handleError);
+                .catch(handleError);
         });
 
         // Sign Up Button Click Event
-        signUpButton.addEventListener("click", function () {
-            var email = emailInput.value;
-            var password = passwordInput.value;
+        signUpButton.addEventListener("click", () => {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!validateInputs(email, password)) return;
 
             // Send a POST request to your register endpoint
-            fetch('http://103.251.252.106:31823/register', {
+            fetch('/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    email: email,
-                    password: password
+                body: JSON.stringify({ email, password }),
+            })
+                .then((response) => response.text())
+                .then((message) => {
+                    alert(message);
+                    window.location.href = "test.html";
                 })
-            })
-            .then(response => response.text())
-            .then(message => {
-                alert(message); // Show registration success message
-                // Redirect to test.html after successful registration
-                window.location.href = "test.html";
-            })
-            .catch(handleError);
+                .catch(handleError);
         });
     </script>
 </body>
