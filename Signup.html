@@ -3,14 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In </title> 
-    <link rel="stylesheet" href="/Signup.css"> 
+    <title>Sign In</title>
+    <style>
+        /* General styles */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-box {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            height: 60vh;
+            width: 50vh;
+            justify-content: space-evenly;
+            align-content: center;
+            flex-direction: column;
+        }
+
+        .image-container {
+            margin-right: 20px;
+        }
+
+        .image-container img {
+            max-width: 150px;
+            height: auto;
+        }
+
+        .form-container {
+            max-width: 300px;
+            width: 100%;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        #signInButton {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        #signUpButton {
+            background-color: #28a745;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="login-box">
             <div class="image-container">
-                <img src="/Media/Logo.png" alt="/Login Image">
+                <img src="/Media/Logo.png" alt="Login Image">
             </div>
             <h2>!!Sign Now@</h2>
             <form id="authForm">
@@ -19,7 +91,7 @@
                 </div>
 
                 <div class="input-group">
-                    <input type="password"  id="password" placeholder="Enter your Password" required>
+                    <input type="password" id="password" placeholder="Enter your Password" required>
                 </div>
                 <button type="button" id="signInButton">Sign In</button>
                 <button type="button" id="signUpButton">Sign Up</button>
