@@ -52,14 +52,43 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Run Tests') {
+            steps {
+                script {
+                    echo "Running functional tests on the deployed containers..."
+                    // Here, you can add your test script execution logic
+                    // For example, running Playwright or other test scripts
+                    try {
+                        sh 'node functional_test.js' // Assuming you are using Playwright in a Node.js script
+                        echo "Tests passed successfully!"
+                        // Set a flag that tests were successful
+                        currentBuild.result = 'SUCCESS'
+                    } catch (Exception e) {
+                        echo "Tests failed: ${e.getMessage()}"
+                        // Set the build result to failure if tests failed
+                        currentBuild.result = 'FAILURE'
+                    }
+                }
+            }
+        }
+
+        stage('Delete Kubernetes Pod') {
+            when {
+                expression { currentBuild.result == 'SUCCESS' }
+            }
             steps {
                 script {
                     echo "Deleting old Kubernetes pod..."
                     sh '''
                         kubectl --kubeconfig kube.conf delete pod nginx-api-pod --ignore-not-found=true
                     '''
+                }
+            }
+        }
 
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
                     echo "Applying Kubernetes deployment..."
                     sh '''
                         kubectl --kubeconfig kube.conf apply -f nginxbuld.yaml
