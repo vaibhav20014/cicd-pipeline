@@ -1,15 +1,21 @@
 # Use an official Node.js runtime as the base image
 FROM node:18
+
 # Set the working directory in the container
 WORKDIR /app
+
 # Copy package.json and package-lock.json to the container
 COPY package*.json ./
-# Install application dependencies
+
+# Install application dependencies (including Playwright)
 RUN npm install
+RUN npx playwright install --with-deps  # Install Playwright dependencies
+
 # Copy the rest of the application code
 COPY . .
+
+# Expose the application port (if you need to access it via a browser)
 EXPOSE 3000
 
 # Specify the command to run your application
 CMD ["node", "server.js"]
-
