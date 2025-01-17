@@ -17,7 +17,7 @@ pipeline {
                             curl -s -X DELETE \
                             -u ${DOCKERHUB_USERNAME}:${DOCKERHUB_TOKEN} \
                             https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/manifests/sha256:b8dbb402ed47edfd74a100fc5318362fd2a7bfa3fecc3ffe54bac14a682b7c74
-                        '''
+                        ''' 
                         echo "Old image deleted: nginx1-latest"
                     } catch (Exception e) {
                         echo "Failed to delete old image: ${e.getMessage()}"
@@ -59,9 +59,11 @@ pipeline {
                     // Here, you can add your test script execution logic
                     // For example, running Playwright or other test scripts
                     try {
-                        sh '
+                       sh '''
                         npx playwright install --with-deps
-                        node functional_test.spec.js' // Assuming you are using Playwright in a Node.js script
+                        npx playwright test
+                        '''
+
                         echo "Tests passed successfully!"
                         // Set a flag that tests were successful
                         currentBuild.result = 'SUCCESS'
