@@ -60,8 +60,8 @@ pipeline {
                     // For example, running Playwright or other test scripts
                     try {
                        sh '''
-                        npx playwright install --with-deps
-                        npx playwright test
+                        sudo npx playwright install --with-deps
+                        sudo npx playwright test
                         '''
 
                         echo "Tests passed successfully!"
