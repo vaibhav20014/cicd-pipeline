@@ -1,3 +1,12 @@
+const { execSync } = require('child_process');
+
+try {
+    require('@playwright/test');
+} catch (e) {
+    console.log('Installing @playwright/test...');
+    execSync('npm install @playwright/test && npx playwright install', { stdio: 'inherit' });
+}
+
 const { test, expect } = require('@playwright/test');
 
 test.describe('User SignUp and SignIn', () => {
