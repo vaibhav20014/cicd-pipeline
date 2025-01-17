@@ -1,19 +1,45 @@
 # Use an official Node.js runtime as the base image
 FROM node:18
 
+# Install required dependencies for Playwright
+RUN apt-get update && apt-get install -y \
+    libnss3 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libpangocairo-1.0-0 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libgtk-3-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libepoxy0 \
+    libxshmfence1 \
+    libglu1-mesa && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
 # Set the working directory in the container
 WORKDIR /app
 
 # Copy package.json and package-lock.json to the container
 COPY package*.json ./
 
-# Install application dependencies (including Playwright)
+# Install application dependencies
 RUN npm install
+
+# Install Playwright browsers
+RUN npx playwright install --with-deps
 
 # Copy the rest of the application code
 COPY . .
 
-# Expose the application port (if you need to access it via a browser)
+# Expose the application port
 EXPOSE 3000
 
 # Specify the command to run your application
