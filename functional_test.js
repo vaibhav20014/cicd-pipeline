@@ -1,48 +1,46 @@
-const { execSync } = require('child_process');
-
-try {
-    require('@playwright/test');
-} catch (e) {
-    console.log('Installing @playwright/test...');
-    execSync('npm install @playwright/test && npx playwright install', { stdio: 'inherit' });
-}
-
 const { test, expect } = require('@playwright/test');
 
-test.describe('User SignUp and SignIn', () => {
-  // Test for successful sign-up
-  test('should sign up successfully', async ({ page }) => {
-    // Navigate to the sign-up page (URL of your local or hosted app)
-    await page.goto('http://103.251.252.106:31823/'); // Update URL if needed
+test.describe('User Authentication', () => {
+    // Test for successful sign-up
+    test('should sign up successfully', async ({ page }) => {
+        // Navigate to the sign-up page
+        await page.goto('http://103.251.252.106:31823/'); // Replace with your app URL
 
-    // Interact with the sign-up form
-    await page.fill('#email', 'testuser@example.com');
-    await page.fill('#password', 'password123');
-    await page.click('#signUpButton'); // Sign Up Button
+        // Fill in the sign-up form
+        await page.fill('#username', 'testuser'); // Replace with the actual selector for username
+        await page.fill('#email', 'testuser@example.com'); // Replace with the actual selector for email
+        await page.fill('#password', 'password123'); // Replace with the actual selector for password
+        await page.click('#signUpButton'); // Replace with the actual selector for the sign-up button
 
-    // Wait for successful sign-up message (you can adjust the selector for the success message)
-    await page.waitForSelector('.signup-success'); // Adjust if needed
+        // Assert successful sign-up
+        await expect(page.locator('#welcomeMessage')).toContainText('Welcome, testuser!');
+    });
 
-    // Verify the success message appears or any redirect happens (adjust this part as per your flow)
-    expect(await page.isVisible('.signup-success')).toBe(true);
-    console.log('Signup successful!');
-  });
+    // Test for successful sign-in
+    test('should sign in successfully', async ({ page }) => {
+        // Navigate to the login page
+        await page.goto('http://103.251.252.106:31823/login'); // Replace with your login URL
 
-  // Test for successful sign-in
-  test('should sign in successfully', async ({ page }) => {
-    // Navigate to the sign-in page (URL of your local or hosted app)
-    await page.goto('http://103.251.252.106:31823/'); // Update URL if needed
+        // Fill in the login form
+        await page.fill('#username', 'testuser'); // Replace with the actual selector for username
+        await page.fill('#password', 'password123'); // Replace with the actual selector for password
+        await page.click('#signInButton'); // Replace with the actual selector for the login button
 
-    // Interact with the sign-in form
-    await page.fill('#email', 'testuser@example.com');
-    await page.fill('#password', 'password123');
-    await page.click('#signInButton'); // Sign In Button
+        // Assert successful login
+        await expect(page.locator('#dashboard')).toBeVisible(); // Replace with the actual dashboard selector
+    });
 
-    // Wait for successful sign-in (or redirection to another page)
-    await page.waitForSelector('#testPage'); // Adjust based on what should be visible after login
+    // Test for failed sign-in due to incorrect credentials
+    test('should show error on incorrect credentials', async ({ page }) => {
+        // Navigate to the login page
+        await page.goto('http://103.251.252.106:31823/login'); // Replace with your login URL
 
-    // Check if redirected successfully
-    expect(await page.url()).toContain('test.html');
-    console.log('SignIn successful!');
-  });
+        // Fill in the login form with incorrect credentials
+        await page.fill('#username', 'wronguser'); // Replace with the actual selector for username
+        await page.fill('#password', 'wrongpassword'); // Replace with the actual selector for password
+        await page.click('#signInButton'); // Replace with the actual selector for the login button
+
+        // Assert error message is shown
+        await expect(page.locator('#errorMessage')).toContainText('Invalid username or password'); // Replace with the actual selector for the error message
+    });
 });
