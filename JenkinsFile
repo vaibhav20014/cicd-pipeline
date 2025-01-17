@@ -59,7 +59,9 @@ pipeline {
                     // Here, you can add your test script execution logic
                     // For example, running Playwright or other test scripts
                     try {
-                        sh 'node functional_test.spec.js' // Assuming you are using Playwright in a Node.js script
+                        sh '
+                        npx playwright install --with-deps
+                        node functional_test.spec.js' // Assuming you are using Playwright in a Node.js script
                         echo "Tests passed successfully!"
                         // Set a flag that tests were successful
                         currentBuild.result = 'SUCCESS'
