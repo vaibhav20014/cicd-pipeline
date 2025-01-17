@@ -1,4 +1,5 @@
-const { test, expect } = require('@playwright/test');
+// Importing Playwright from local node_modules
+const { test, expect } = require('@playwright/test'); // Ensure Playwright is installed in node_modules
 
 test.describe('User Authentication', () => {
     // Test for successful sign-up
