@@ -4,7 +4,8 @@
   "description": "A simple API for user registration and login with MySQL and functional testing",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "playwright test"  // Added script to run Playwright tests
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
@@ -12,10 +13,13 @@
     "mysql": "^2.18.1",
     "jsonwebtoken": "^8.5.1",
     "cors": "^2.8.5"
-  }, 
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.23.0"  // Added Playwright as a dev dependency
+  },
   "engines": {
     "node": ">=18.0.0"
   },
   "author": "Your Name",
   "license": "ISC"
-} 
+}
