@@ -5,7 +5,6 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test-functional": "npx playwright test functional_test.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
