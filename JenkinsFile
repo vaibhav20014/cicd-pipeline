@@ -1,23 +1,23 @@
 pipeline {
     agent any
- 
+
     environment {
         DOCKERHUB_USERNAME = 'israni141'
-        DOCKERHUB_TOKEN = 'dckr_pat_IpyOZ8wV2Ycx6C7P2fDBWqcIlEI' // Use token for secure authentication
+        DOCKERHUB_TOKEN = credentials('dockerhub-token') // Use Jenkins credentials for security
         DOCKERHUB_REPO = 'israni141/devops'
     }
- 
+
     stages {
-        stage('Delete Old Docker Hub Images') { 
+        stage('Delete Old Docker Hub Images') {
             steps {
                 script {
                     echo "Deleting old Docker Hub images..."
                     try {
                         sh '''
                             curl -s -X DELETE \
-                            -u ${DOCKERHUB_USERNAME}:${DOCKERHUB_TOKEN} \
-                            https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/manifests/sha256:b8dbb402ed47edfd74a100fc5318362fd2a7bfa3fecc3ffe54bac14a682b7c74
-                        ''' 
+                            -u $DOCKERHUB_USERNAME:$DOCKERHUB_TOKEN \
+                            https://hub.docker.com/v2/repositories/$DOCKERHUB_REPO/manifests/sha256:b8dbb402ed47edfd74a100fc5318362fd2a7bfa3fecc3ffe54bac14a682b7c74
+                        '''
                         echo "Old image deleted: nginx1-latest"
                     } catch (Exception e) {
                         echo "Failed to delete old image: ${e.getMessage()}"
@@ -31,9 +31,9 @@ pipeline {
                 script {
                     echo "Building and pushing a new NGINX Docker image..."
                     sh '''
-                        docker build -t ${DOCKERHUB_REPO}:nginx1-latest -f Dockerfile .
-                        docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_TOKEN}
-                        docker push ${DOCKERHUB_REPO}:nginx1-latest
+                        docker build -t $DOCKERHUB_REPO:nginx1-latest -f Dockerfile .
+                        echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
+                        docker push $DOCKERHUB_REPO:nginx1-latest
                     '''
                 }
             }
@@ -44,9 +44,9 @@ pipeline {
                 script {
                     echo "Building and pushing a new API Docker image..."
                     sh '''
-                        docker build -t ${DOCKERHUB_REPO}:my-api-latest -f Dockerfile.node .
-                        docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_TOKEN}
-                        docker push ${DOCKERHUB_REPO}:my-api-latest
+                        docker build -t $DOCKERHUB_REPO:my-api-latest -f Dockerfile.node .
+                        echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
+                        docker push $DOCKERHUB_REPO:my-api-latest
                     '''
                 }
             }
@@ -57,12 +57,10 @@ pipeline {
                 script {
                     echo "Running functional tests on the deployed containers..."
                     try {
-                        // Install Playwright dependencies and run tests
                         sh '''
                             npx playwright install --with-deps
                             npx playwright test
                         '''
-        
                         echo "Tests passed successfully!"
                         currentBuild.result = 'SUCCESS'
                     } catch (Exception e) {
@@ -104,14 +102,13 @@ pipeline {
                     echo "Cleaning up old Docker Hub images..."
                     sh '''
                         curl -s -X DELETE \
-                        -u ${DOCKERHUB_USERNAME}:${DOCKERHUB_TOKEN} \
-                        https://hub.docker.com/v2/repositories/${DOCKERHUB_REPO}/manifests/sha256:<digest_for_my-api-latest>
+                        -u $DOCKERHUB_USERNAME:$DOCKERHUB_TOKEN \
+                        https://hub.docker.com/v2/repositories/$DOCKERHUB_REPO/manifests/sha256:<digest_for_my-api-latest>
                     '''
                 }
             }
         }
     }
-
 
     post {
         failure {
