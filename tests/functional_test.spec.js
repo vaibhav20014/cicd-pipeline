@@ -7,15 +7,12 @@ test.describe('User Authentication', () => {
         // Navigate to the sign-up page
         await page.goto('http://103.251.252.106:31823/'); // Replace with your app URL
 
-        // Wait for the email field to appear
-        await page.waitForSelector('#email', { timeout: 10000 });
-
         // Fill in the sign-up form
         await page.fill('#email', 'testuser@example.com'); // Replace with the actual selector for email
         await page.fill('#password', 'password123'); // Replace with the actual selector for password
         await page.click('#signUpButton'); // Replace with the actual selector for the sign-up button
 
-        // Assert navigation to the next page
+        // Wait for navigation to the next page and assert the URL
         await page.waitForURL('http://103.251.252.106:31823/test.html', { timeout: 10000 });
         expect(page.url()).toBe('http://103.251.252.106:31823/test.html');
     });
@@ -25,15 +22,12 @@ test.describe('User Authentication', () => {
         // Navigate to the login page
         await page.goto('http://103.251.252.106:31823/login'); // Replace with your login URL
 
-        // Wait for the email field to appear
-        await page.waitForSelector('#email', { timeout: 10000 });
-
         // Fill in the login form
         await page.fill('#email', 'testuser@example.com'); // Replace with the actual selector for email
         await page.fill('#password', 'password123'); // Replace with the actual selector for password
         await page.click('#signInButton'); // Replace with the actual selector for the sign-in button
 
-        // Assert navigation to the next page
+        // Wait for navigation to the next page and assert the URL
         await page.waitForURL('http://103.251.252.106:31823/test.html', { timeout: 10000 });
         expect(page.url()).toBe('http://103.251.252.106:31823/test.html');
     });
@@ -43,15 +37,13 @@ test.describe('User Authentication', () => {
         // Navigate to the login page
         await page.goto('http://103.251.252.106:31823/login'); // Replace with your login URL
 
-        // Wait for the email field to appear
-        await page.waitForSelector('#email', { timeout: 10000 });
-
         // Fill in the login form with incorrect credentials
         await page.fill('#email', 'wronguser@example.com'); // Replace with the actual selector for email
         await page.fill('#password', 'wrongpassword'); // Replace with the actual selector for password
         await page.click('#signInButton'); // Replace with the actual selector for the sign-in button
 
-        // Assert error message is shown
-        await expect(page.locator('#errorMessage')).toContainText('Invalid username or password'); // Replace with the actual selector for the error message
+        // Assert error message is shown (modify selector if necessary)
+        const errorMessage = await page.locator('#errorMessage'); // Replace with actual error message locator
+        await expect(errorMessage).toContainText('Invalid username or password');
     });
 });
