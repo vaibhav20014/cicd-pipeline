@@ -23,8 +23,8 @@ test.describe('User Authentication', () => {
         await page.goto('http://103.251.252.106:31823/login'); // Replace with your login URL
 
         // Fill in the login form
-        await page.fill('#email', 'testuser@example.com'); // Replace with the actual selector for email
-        await page.fill('#password', 'password123'); // Replace with the actual selector for password
+        await page.fill('#email', 'himnish@gmail.com'); // Replace with the actual selector for email
+        await page.fill('#password', '123'); // Replace with the actual selector for password
         await page.click('#signInButton'); // Replace with the actual selector for the sign-in button
 
         // Wait for navigation to the next page and assert the URL
