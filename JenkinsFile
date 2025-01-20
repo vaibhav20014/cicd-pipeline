@@ -96,18 +96,7 @@ pipeline {
             }
         }
 
-        stage('Optional Cleanup of Docker Hub Images') {
-            steps {
-                script {
-                    echo "Cleaning up old Docker Hub images..."
-                    sh """
-                        curl -s -X DELETE \
-                        -u $DOCKERHUB_USERNAME:$DOCKERHUB_TOKEN \
-                        https://hub.docker.com/v2/repositories/$DOCKERHUB_REPO/manifests/sha256:<digest_for_my-api-latest>
-                    """
-                }
-            }
-        }
+        
     }
 
     post {
