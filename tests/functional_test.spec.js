@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test'); // Ensure Playwright is in
 
 test.describe('User Authentication', () => {
     // Test for successful sign-up
-    test('should sign up successfully', async ({ page }) => {
+    test('should sign up successfully and navigate to the next page', async ({ page }) => {
         // Navigate to the sign-up page
         await page.goto('http://103.251.252.106:31823/'); // Replace with your app URL
 
@@ -12,12 +12,13 @@ test.describe('User Authentication', () => {
         await page.fill('#password', 'password123'); // Replace with the actual selector for password
         await page.click('#signUpButton'); // Replace with the actual selector for the sign-up button
 
-        // Assert successful sign-up
-        await expect(page.locator('#welcomeMessage')).toContainText('Welcome, testuser!'); // Replace with the actual selector for the welcome message
+        // Assert navigation to the next page
+        await page.waitForURL('http://103.251.252.106:31823/test.html');
+        expect(page.url()).toBe('http://103.251.252.106:31823/test.html');
     });
 
     // Test for successful sign-in
-    test('should sign in successfully', async ({ page }) => {
+    test('should sign in successfully and navigate to the next page', async ({ page }) => {
         // Navigate to the login page
         await page.goto('http://103.251.252.106:31823/login'); // Replace with your login URL
 
@@ -26,8 +27,9 @@ test.describe('User Authentication', () => {
         await page.fill('#password', 'password123'); // Replace with the actual selector for password
         await page.click('#signInButton'); // Replace with the actual selector for the sign-in button
 
-        // Assert successful login
-        await expect(page.locator('#dashboard')).toBeVisible(); // Replace with the actual dashboard selector
+        // Assert navigation to the next page
+        await page.waitForURL('http://103.251.252.106:31823/test.html');
+        expect(page.url()).toBe('http://103.251.252.106:31823/test.html');
     });
 
     // Test for failed sign-in due to incorrect credentials
