@@ -110,6 +110,21 @@
             welcomeMessage.style.display = "block"; // Show the message
         }
 
+        // Mock backend responses for testing
+        async function mockFetch(endpoint, data) {
+            if (endpoint === "/register" || endpoint === "/login") {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve({
+                            ok: true,
+                            json: async () => ({ token: "mockToken" }),
+                        });
+                    }, 1000);
+                });
+            }
+            throw new Error("Endpoint not implemented.");
+        }
+
         // Sign-Up Logic
         signUpButton.addEventListener("click", async () => {
             const email = emailInput.value.trim();
@@ -121,19 +136,35 @@
             }
 
             try {
-                const response = await fetch('/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email, password }),
-                });
-
+                const response = await mockFetch("/register", { email, password });
                 if (response.ok) {
-                    const data = await response.json();
-                    displayWelcomeMessage(email.split('@')[0]); // Show the welcome message
+                    const username = email.split("@")[0];
+                    displayWelcomeMessage(username); // Update welcome message
                 } else {
                     alert("Sign-Up Error");
+                }
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
+        });
+
+        // Sign-In Logic
+        signInButton.addEventListener("click", async () => {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!email || !password) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            try {
+                const response = await mockFetch("/login", { email, password });
+                if (response.ok) {
+                    const username = email.split("@")[0];
+                    displayWelcomeMessage(username); // Update welcome message
+                } else {
+                    alert("Sign-In Error: Invalid credentials");
                 }
             } catch (error) {
                 alert("Error: " + error.message);
