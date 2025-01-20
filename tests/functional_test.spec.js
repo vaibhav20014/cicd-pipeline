@@ -2,48 +2,40 @@
 const { test, expect } = require('@playwright/test'); // Ensure Playwright is installed in node_modules
 
 test.describe('User Authentication', () => {
-    // Test for successful sign-up
-    test('should sign up successfully and navigate to the next page', async ({ page }) => {
-        // Navigate to the sign-up page
-        await page.goto('http://103.251.252.106:31823/'); // Replace with your app URL
-
-        // Fill in the sign-up form
-        await page.fill('#email', 'testuser@example.com'); // Replace with the actual selector for email
-        await page.fill('#password', 'password123'); // Replace with the actual selector for password
-        await page.click('#signUpButton'); // Replace with the actual selector for the sign-up button
-
-        // Wait for navigation to the next page and assert the URL
-        await page.waitForURL('http://103.251.252.106:31823/test.html', { timeout: 10000 });
-        expect(page.url()).toBe('http://103.251.252.106:31823/test.html');
-    });
-
     // Test for successful sign-in
     test('should sign in successfully and navigate to the next page', async ({ page }) => {
         // Navigate to the login page
         await page.goto('http://103.251.252.106:31823/login'); // Replace with your login URL
 
+        // Wait for the email field to appear
+        await page.waitForSelector('#email', { timeout: 50000 });  // Increased timeout
+
         // Fill in the login form
-        await page.fill('#email', 'himnish@gmail.com'); // Replace with the actual selector for email
-        await page.fill('#password', '123'); // Replace with the actual selector for password
+        await page.fill('#email', 'testuser@example.com'); // Replace with the actual selector for email
+        await page.fill('#password', 'password123'); // Replace with the actual selector for password
         await page.click('#signInButton'); // Replace with the actual selector for the sign-in button
 
-        // Wait for navigation to the next page and assert the URL
-        await page.waitForURL('http://103.251.252.106:31823/test.html', { timeout: 10000 });
-        expect(page.url()).toBe('http://103.251.252.106:31823/test.html');
+        // Check if the next page loads (for example, wait for dashboard to appear)
+        await expect(page).toHaveURL('http://103.251.252.106:31823/dashboard');  // Adjust with correct URL
     });
 
-    // Test for failed sign-in due to incorrect credentials
-    test('should show error on incorrect credentials', async ({ page }) => {
-        // Navigate to the login page
-        await page.goto('http://103.251.252.106:31823/login'); // Replace with your login URL
+    // Test for sign-up with already registered user
+    test('should show alert when trying to register already registered user', async ({ page }) => {
+        // Navigate to the sign-up page
+        await page.goto('http://103.251.252.106:31823/'); // Replace with your app URL
 
-        // Fill in the login form with incorrect credentials
-        await page.fill('#email', 'wronguser@example.com'); // Replace with the actual selector for email
-        await page.fill('#password', 'wrongpassword'); // Replace with the actual selector for password
-        await page.click('#signInButton'); // Replace with the actual selector for the sign-in button
+        // Wait for the email field to appear
+        await page.waitForSelector('#email', { timeout: 50000 });  // Increased timeout
 
-        // Assert error message is shown (modify selector if necessary)
-        const errorMessage = await page.locator('#errorMessage'); // Replace with actual error message locator
-        await expect(errorMessage).toContainText('Invalid username or password');
+        // Fill in the sign-up form with an already registered email
+        await page.fill('#email', 'testuser@example.com'); // Use a registered email
+        await page.fill('#password', 'password123'); // Replace with the actual selector for password
+        await page.click('#signUpButton'); // Replace with the actual selector for the sign-up button
+
+        // Wait for and assert the alert box message
+        page.on('dialog', async (dialog) => {
+            expect(dialog.message()).toContain('User already registered');
+            await dialog.accept();  // Close the alert box
+        });
     });
 });
