@@ -140,6 +140,8 @@
                 if (response.ok) {
                     const username = email.split("@")[0];
                     displayWelcomeMessage(username); // Update welcome message
+                    // Redirect to the next page after successful registration
+                    window.location.href = "test.html"; // Redirect to the next page
                 } else {
                     alert("Sign-Up Error");
                 }
@@ -163,6 +165,8 @@
                 if (response.ok) {
                     const username = email.split("@")[0];
                     displayWelcomeMessage(username); // Update welcome message
+                    // Redirect to the next page after successful login
+                    window.location.href = "test.html"; // Redirect to the next page
                 } else {
                     alert("Sign-In Error: Invalid credentials");
                 }
