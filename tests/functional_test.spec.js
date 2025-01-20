@@ -8,13 +8,12 @@ test.describe('User Authentication', () => {
         await page.goto('http://103.251.252.106:31823/'); // Replace with your app URL
 
         // Fill in the sign-up form
-        await page.fill('#username', 'testuser'); // Replace with the actual selector for username
         await page.fill('#email', 'testuser@example.com'); // Replace with the actual selector for email
         await page.fill('#password', 'password123'); // Replace with the actual selector for password
         await page.click('#signUpButton'); // Replace with the actual selector for the sign-up button
 
         // Assert successful sign-up
-        await expect(page.locator('#welcomeMessage')).toContainText('Welcome, testuser!');
+        await expect(page.locator('#welcomeMessage')).toContainText('Welcome, testuser!'); // Replace with the actual selector for the welcome message
     });
 
     // Test for successful sign-in
@@ -23,9 +22,9 @@ test.describe('User Authentication', () => {
         await page.goto('http://103.251.252.106:31823/login'); // Replace with your login URL
 
         // Fill in the login form
-        await page.fill('#username', 'testuser'); // Replace with the actual selector for username
+        await page.fill('#email', 'testuser@example.com'); // Replace with the actual selector for email
         await page.fill('#password', 'password123'); // Replace with the actual selector for password
-        await page.click('#signInButton'); // Replace with the actual selector for the login button
+        await page.click('#signInButton'); // Replace with the actual selector for the sign-in button
 
         // Assert successful login
         await expect(page.locator('#dashboard')).toBeVisible(); // Replace with the actual dashboard selector
@@ -37,9 +36,9 @@ test.describe('User Authentication', () => {
         await page.goto('http://103.251.252.106:31823/login'); // Replace with your login URL
 
         // Fill in the login form with incorrect credentials
-        await page.fill('#username', 'wronguser'); // Replace with the actual selector for username
+        await page.fill('#email', 'wronguser@example.com'); // Replace with the actual selector for email
         await page.fill('#password', 'wrongpassword'); // Replace with the actual selector for password
-        await page.click('#signInButton'); // Replace with the actual selector for the login button
+        await page.click('#signInButton'); // Replace with the actual selector for the sign-in button
 
         // Assert error message is shown
         await expect(page.locator('#errorMessage')).toContainText('Invalid username or password'); // Replace with the actual selector for the error message
