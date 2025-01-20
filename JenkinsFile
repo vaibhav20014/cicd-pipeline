@@ -56,20 +56,17 @@ pipeline {
             steps {
                 script {
                     echo "Running functional tests on the deployed containers..."
-                    // Here, you can add your test script execution logic
-                    // For example, running Playwright or other test scripts
                     try {
-                       sh '''
-                        sudo npx playwright install --with-deps
-                        sudo npx playwright test
+                        // Install Playwright dependencies and run tests
+                        sh '''
+                            npx playwright install --with-deps
+                            npx playwright test
                         '''
-
+        
                         echo "Tests passed successfully!"
-                        // Set a flag that tests were successful
                         currentBuild.result = 'SUCCESS'
                     } catch (Exception e) {
                         echo "Tests failed: ${e.getMessage()}"
-                        // Set the build result to failure if tests failed
                         currentBuild.result = 'FAILURE'
                     }
                 }
