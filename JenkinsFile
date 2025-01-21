@@ -5,6 +5,8 @@ pipeline {
         DOCKERHUB_USERNAME = 'israni141'
         DOCKERHUB_TOKEN = 'dckr_pat_IpyOZ8wV2Ycx6C7P2fDBWqcIlEI' // Use token for secure authentication
         DOCKERHUB_REPO = 'israni141/devops'
+        GIT_REPO = 'https://github.com/vaibhav20014/cicd-pipeline.git' // Replace with your repo URL
+        GIT_CREDENTIALS = 'your-jenkins-credentials-id' // Add Jenkins credentials ID
     }
   
     stages {
@@ -66,6 +68,7 @@ pipeline {
                     } catch (Exception e) {
                         echo "Tests failed: ${e.getMessage()}"
                         currentBuild.result = 'FAILURE'
+                        error "Functional tests failed. Stopping pipeline."
                     }
                 }
             }
@@ -85,7 +88,34 @@ pipeline {
             }
         }
 
+        stage('Push Main to Prod Branch') {
+            when {
+                expression { currentBuild.result == 'SUCCESS' }
+            }
+            steps {
+                script {
+                    echo "Pushing changes from main branch to prod branch..."
+                    sh """
+                        git clone $GIT_REPO repo
+                        cd repo
+                        git checkout main
+                        git pull origin main
+                        git checkout prod
+                        git pull origin prod
+                        rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js . ../temp
+                        cd ../temp
+                        git add .
+                        git commit -m "Syncing main branch changes to prod branch"
+                        git push origin prod
+                    """
+                }
+            }
+        }
+
         stage('Deploy to Kubernetes') {
+            when {
+                expression { currentBuild.result == 'SUCCESS' }
+            }
             steps {
                 script {
                     echo "Applying Kubernetes deployment..."
@@ -95,8 +125,6 @@ pipeline {
                 }
             }
         }
-
-        
     }
 
     post {
