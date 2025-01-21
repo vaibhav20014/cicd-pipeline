@@ -87,8 +87,7 @@ pipeline {
                 }
             }
         }
-
-        stage('Push Main to Prod Branch') {
+stage('Push Main to Prod Branch') {
     when {
         expression { currentBuild.result == 'SUCCESS' }
     }
@@ -96,7 +95,7 @@ pipeline {
         script {
             echo "Pushing changes from main branch to prod branch..."
             sh """
-                git clone https://da5c97ea-6aae-4918-9418-7104dc229832:x-oauth-basic@github.com/vaibhav20014/cicd-pipeline.git repo
+                git clone https://da5c97ea-6aae-4918-9418-7104dc229832@github.com/vaibhav20014/cicd-pipeline.git repo
                 cd repo
                 git checkout main
                 git pull origin main
@@ -105,7 +104,7 @@ pipeline {
                 rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js . ../temp
                 cd ../temp
                 git init
-                git remote add origin https://da5c97ea-6aae-4918-9418-7104dc229832:x-oauth-basic@github.com/vaibhav20014/cicd-pipeline.git
+                git remote add origin https://da5c97ea-6aae-4918-9418-7104dc229832@github.com/vaibhav20014/cicd-pipeline.git
                 git checkout -b prod
                 git add .
                 git commit -m "Syncing main branch changes to prod branch"
