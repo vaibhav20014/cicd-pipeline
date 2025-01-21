@@ -94,25 +94,28 @@ stage('Push Main to Prod Branch') {
     steps {
         script {
             echo "Pushing changes from main branch to prod branch..."
-            sh """
-                git clone https://da5c97ea-6aae-4918-9418-7104dc229832@github.com/vaibhav20014/cicd-pipeline.git repo
-                cd repo
-                git checkout main
-                git pull origin main
-                git checkout prod
-                git pull origin prod
-                rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js . ../temp
-                cd ../temp
-                git init
-                git remote add origin https://da5c97ea-6aae-4918-9418-7104dc229832@github.com/vaibhav20014/cicd-pipeline.git
-                git checkout -b prod
-                git add .
-                git commit -m "Syncing main branch changes to prod branch"
-                git push --force origin prod
-            """
+            withCredentials([usernamePassword(credentialsId: 'da5c97ea-6aae-4918-9418-7104dc229832', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                sh """
+                    git clone https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git repo
+                    cd repo
+                    git checkout main
+                    git pull origin main
+                    git checkout prod
+                    git pull origin prod
+                    rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js . ../temp
+                    cd ../temp
+                    git init
+                    git remote add origin https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git
+                    git checkout -b prod
+                    git add .
+                    git commit -m "Syncing main branch changes to prod branch"
+                    git push --force origin prod
+                """
+            }
         }
     }
 }
+
 
         stage('Deploy to Kubernetes') {
             when {
