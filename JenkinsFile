@@ -5,12 +5,12 @@ pipeline {
         DOCKERHUB_USERNAME = 'israni141'
         DOCKERHUB_TOKEN = 'dckr_pat_IpyOZ8wV2Ycx6C7P2fDBWqcIlEI' // Use token for secure authentication
         DOCKERHUB_REPO = 'israni141/devops'
+        GIT_CREDENTIALS_ID = 'da5c97ea-6aae-4918-9418-7104dc229832' // Jenkins credential ID
         GIT_REPO = 'https://github.com/vaibhav20014/cicd-pipeline.git' // Replace with your repo URL
-        GIT_CREDENTIALS = 'your-jenkins-credentials-id' // Add Jenkins credentials ID
     }
-  
+
     stages {
-        stage('Delete Old Docker Hub Images') { 
+        stage('Delete Old Docker Hub Images') {
             steps {
                 script {
                     echo "Deleting old Docker Hub images..."
@@ -19,7 +19,7 @@ pipeline {
                             curl -s -X DELETE \
                             -u $DOCKERHUB_USERNAME:$DOCKERHUB_TOKEN \
                             https://hub.docker.com/v2/repositories/$DOCKERHUB_REPO/manifests/sha256:b8dbb402ed47edfd74a100fc5318362fd2a7bfa3fecc3ffe54bac14a682b7c74
-                        """ 
+                        """
                         echo "Old image deleted: nginx1-latest"
                     } catch (Exception e) {
                         echo "Failed to delete old image: ${e.getMessage()}"
@@ -95,19 +95,24 @@ pipeline {
             steps {
                 script {
                     echo "Pushing changes from main branch to prod branch..."
-                    sh """
-                        git clone $GIT_REPO repo
-                        cd repo
-                        git checkout main
-                        git pull origin main
-                        git checkout prod
-                        git pull origin prod
-                        rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js . ../temp
-                        cd ../temp
-                        git add .
-                        git commit -m "Syncing main branch changes to prod branch"
-                        git push origin prod
-                    """
+                    withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                        sh """
+                            git clone https://$GIT_USERNAME:$GIT_PASSWORD@$GIT_REPO repo
+                            cd repo
+                            git checkout main
+                            git pull origin main
+                            git checkout prod
+                            git pull origin prod
+                            rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js . ../temp
+                            cd ../temp
+                            git init
+                            git remote add origin https://$GIT_USERNAME:$GIT_PASSWORD@$GIT_REPO
+                            git checkout -b prod
+                            git add .
+                            git commit -m "Syncing main branch changes to prod branch"
+                            git push --force origin prod
+                        """
+                    }
                 }
             }
         }
