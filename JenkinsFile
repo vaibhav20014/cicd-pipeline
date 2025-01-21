@@ -8,7 +8,7 @@ pipeline {
         GIT_CREDENTIALS_ID = 'da5c97ea-6aae-4918-9418-7104dc229832' // Jenkins credential ID
         GIT_REPO = 'https://github.com/vaibhav20014/cicd-pipeline.git' // Replace with your repo URL
     }
-
+ 
     stages {
         stage('Delete Old Docker Hub Images') {
             steps {
