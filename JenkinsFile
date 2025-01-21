@@ -6,7 +6,7 @@ pipeline {
         DOCKERHUB_TOKEN = 'dckr_pat_IpyOZ8wV2Ycx6C7P2fDBWqcIlEI' // Use token for secure authentication
         DOCKERHUB_REPO = 'israni141/devops'
     }
-
+ 
     stages {
         stage('Delete Old Docker Hub Images') { 
             steps {
