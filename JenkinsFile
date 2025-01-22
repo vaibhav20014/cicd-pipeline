@@ -99,10 +99,6 @@ stage('Push Main to Prod Branch') {
                     # Navigate to the workspace where the repo is already cloned
                     cd ${env.WORKSPACE}
 
-                    # Configure Git identity (if not already set)
-                    git config user.name "$GIT_USERNAME"
-                    git config user.email "your_email@example.com"
-
                     # Ensure we're on the main branch and pull the latest changes
                     git checkout main
                     git pull origin main
