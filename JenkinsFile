@@ -121,7 +121,7 @@ pipeline {
                             git config user.email "kalevaibhav740@gmail.com"
                             git checkout main
                             git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git main
-                            git checkout prod
+                            git checkout -f prod
                             git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod
                             rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js ${env.WORKSPACE}/ ./
                             git add .
