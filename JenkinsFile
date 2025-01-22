@@ -87,7 +87,6 @@ pipeline {
                 }
             }
         }
-
 stage('Push Main to Prod Branch') {
     when {
         expression { currentBuild.result == 'SUCCESS' }
@@ -95,40 +94,36 @@ stage('Push Main to Prod Branch') {
     steps {
         script {
             echo "Pushing changes from main branch to prod branch..."
-            withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+            withCredentials([usernamePassword(credentialsId: 'da5c97ea-6aae-4918-9418-7104dc229832', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                 sh """
-                    # Navigate to the workspace
+                    # Navigate to the workspace where the repo is already cloned
                     cd ${env.WORKSPACE}
 
-                    # Configure Git identity
+                    # Configure Git identity (if not already set)
                     git config user.name "$GIT_USERNAME"
                     git config user.email "your_email@example.com"
 
-                    # Pull changes from the main branch
+                    # Ensure we're on the main branch and pull the latest changes
                     git checkout main
-                    git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git main
+                    git pull origin main
 
-                    # Switch to prod branch and sync changes
+                    # Switch to the prod branch and pull the latest changes
                     git checkout prod
-                    git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod
+                    git pull origin prod
 
-                    # Sync files from main to prod
-                    rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js . ../temp
+                    # Sync files from the main branch to prod (excluding Jenkinsfile and functional tests)
+                    rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js ${env.WORKSPACE}/ ./
 
-                    # Commit and push changes to prod branch
-                    cd ../temp
-                    git init
-                    git remote add origin https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git
-                    git checkout -b prod
+                    # Stage, commit, and push the changes to the prod branch
                     git add .
                     git commit -m "Syncing main branch changes to prod branch"
-                    git push --force origin prod
+                    git push origin prod
                 """
+
             }
         }
     }
 }
-
 
 
         stage('Deploy to Kubernetes') {
