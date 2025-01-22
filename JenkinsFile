@@ -88,7 +88,7 @@ pipeline {
             }
         }
 
-        stage('Push Main to Prod Branch') {
+stage('Push Main to Prod Branch') {
     when {
         expression { currentBuild.result == 'SUCCESS' }
     }
@@ -97,20 +97,20 @@ pipeline {
             echo "Pushing changes from main branch to prod branch..."
             withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                 sh """
-                    # Navigate to the existing workspace
+                    # Navigate to the workspace
                     cd ${env.WORKSPACE}
 
-                    # Configure Git to use the provided credentials
+                    # Configure Git identity
                     git config user.name "$GIT_USERNAME"
-                    git config user.email "your_email@example.com" # Use your GitHub email
-                    
-                    # Authenticate and pull changes from the main branch
+                    git config user.email "your_email@example.com"
+
+                    # Pull changes from the main branch
                     git checkout main
-                    git pull https://$GIT_USERNAME:$GIT_PASSWORD@$GIT_REPO main
+                    git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git main
 
                     # Switch to prod branch and sync changes
                     git checkout prod
-                    git pull https://$GIT_USERNAME:$GIT_PASSWORD@$GIT_REPO prod
+                    git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod
 
                     # Sync files from main to prod
                     rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js . ../temp
@@ -118,7 +118,7 @@ pipeline {
                     # Commit and push changes to prod branch
                     cd ../temp
                     git init
-                    git remote add origin https://$GIT_USERNAME:$GIT_PASSWORD@$GIT_REPO
+                    git remote add origin https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git
                     git checkout -b prod
                     git add .
                     git commit -m "Syncing main branch changes to prod branch"
@@ -128,6 +128,7 @@ pipeline {
         }
     }
 }
+
 
 
         stage('Deploy to Kubernetes') {
