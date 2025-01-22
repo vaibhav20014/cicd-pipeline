@@ -105,11 +105,11 @@ stage('Push Main to Prod Branch') {
 
                     # Ensure we're on the main branch and pull the latest changes
                     git checkout main
-                    git pull origin main
+                    git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git main
 
                     # Switch to the prod branch and pull the latest changes
                     git checkout prod
-                    git pull origin prod
+                    git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod
 
                     # Sync files from the main branch to prod (excluding Jenkinsfile and functional tests)
                     rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js ${env.WORKSPACE}/ ./
@@ -117,7 +117,7 @@ stage('Push Main to Prod Branch') {
                     # Stage, commit, and push the changes to the prod branch
                     git add .
                     git commit -m "Syncing main branch changes to prod branch"
-                    git push origin prod
+                    git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod
                 """
 
             }
