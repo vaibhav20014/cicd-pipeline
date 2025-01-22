@@ -89,34 +89,42 @@ pipeline {
         }
 
         stage('Push Main to Prod Branch') {
-            when {
-                expression { currentBuild.result == 'SUCCESS' }
-            }
-            steps {
-                script {
-                    echo "Pushing changes from main branch to prod branch..."
-                    withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                        sh """
-                            git clone https://$GIT_USERNAME:$GIT_PASSWORD@$GIT_REPO repo
-                            cd repo
-                            git checkout main
-                            git pull origin main
-                            git checkout prod
-                            git pull origin prod
-                            rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js . ../temp
-                            cd ../temp
-                            git init
-                            git remote remove origin || true
-                            git remote add origin https://$GIT_USERNAME:$GIT_PASSWORD@$GIT_REPO
-                            git checkout -b prod
-                            git add .
-                            git commit -m "Syncing main branch changes to prod branch"
-                            git push --force origin prod
-                        """
-                    }
-                }
+    when {
+        expression { currentBuild.result == 'SUCCESS' }
+    }
+    steps {
+        script {
+            echo "Pushing changes from main branch to prod branch..."
+            withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                sh """
+                    # Navigate to the existing workspace
+                    cd ${env.WORKSPACE}
+                    
+                    # Ensure we're on the main branch
+                    git checkout main
+                    git pull origin main
+                    
+                    # Switch to prod branch
+                    git checkout prod
+                    git pull origin prod
+                    
+                    # Sync changes from main to prod (excluding certain files)
+                    rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js . ../temp
+                    
+                    # Commit and push changes to prod
+                    cd ../temp
+                    git init
+                    git remote remove origin || true
+                    git remote add origin https://$GIT_USERNAME:$GIT_PASSWORD@$GIT_REPO
+                    git checkout -b prod
+                    git add .
+                    git commit -m "Syncing main branch changes to prod branch"
+                    git push --force origin prod
+                """
             }
         }
+    }
+}
 
         stage('Deploy to Kubernetes') {
             when {
