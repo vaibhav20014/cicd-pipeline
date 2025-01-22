@@ -10,6 +10,6 @@ spec:
     - name: nginx1
       image: israni141/devops:nginx1-latest
       imagePullPolicy: Always
-      ports:
+      ports: 
         - containerPort: 8000
  
