@@ -7,22 +7,22 @@ pipeline {
         DOCKERHUB_REPO = 'israni141/devops'
         GIT_CREDENTIALS_ID = 'da5c97ea-6aae-4918-9418-7104dc229832'
         GIT_REPO = 'https://github.com/vaibhav20014/cicd-pipeline.git'
-        SONARQUBE_CREDENTIALS_ID = 'sonarqube-auth' // Replace with your SonarQube credentials ID
     }
- 
+
     stages {
         stage('SonarQube Analysis') {
             steps {
                 script {
                     echo "Performing SonarQube analysis..."
-                    withSonarQubeEnv('SonarQube') { // Replace 'SonarQube' with your configured SonarQube server name in Jenkins
+                    def sonarqubeScannerHome = tool name: 'Sonar' // Make sure the SonarQube scanner is installed in Jenkins
+
+                    withCredentials([string(credentialsId: 'Sonar', variable: 'sonarLogin')]) {
                         sh """
-                            sonar-scanner \
+                            ${sonarqubeScannerHome}/bin/sonar-scanner \
                             -Dsonar.projectKey=cicd-pipeline \
-                            -Dsonar.sources=. \
-                            -Dsonar.host.url=http://your-sonarqube-server:9000 \
-                            -Dsonar.login=$SONARQUBE_CREDENTIALS_ID
-                        """ 
+                            -Dsonar.host.url=http://103.251.252.115:9000 \
+                            -Dsonar.login=${sonarLogin}
+                        """
                     }
                 }
             }
