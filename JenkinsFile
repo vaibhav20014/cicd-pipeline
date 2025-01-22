@@ -22,7 +22,7 @@ pipeline {
                             -Dsonar.sources=. \
                             -Dsonar.host.url=http://your-sonarqube-server:9000 \
                             -Dsonar.login=$SONARQUBE_CREDENTIALS_ID
-                        """
+                        """ 
                     }
                 }
             }
