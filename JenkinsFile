@@ -60,7 +60,7 @@ pipeline {
                     echo "Running functional tests on the deployed containers..."
                     try {
                         sh """
-                            npx playwright install --with-deps
+                            
                             npx playwright test
                         """
                         echo "Tests passed successfully!"
