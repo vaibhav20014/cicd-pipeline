@@ -99,22 +99,25 @@ pipeline {
                 sh """
                     # Navigate to the existing workspace
                     cd ${env.WORKSPACE}
+
+                    # Configure Git to use the provided credentials
+                    git config user.name "$GIT_USERNAME"
+                    git config user.email "your_email@example.com" # Use your GitHub email
                     
-                    # Ensure we're on the main branch
+                    # Authenticate and pull changes from the main branch
                     git checkout main
-                    git pull origin main
-                    
-                    # Switch to prod branch
+                    git pull https://$GIT_USERNAME:$GIT_PASSWORD@$GIT_REPO main
+
+                    # Switch to prod branch and sync changes
                     git checkout prod
-                    git pull origin prod
-                    
-                    # Sync changes from main to prod (excluding certain files)
+                    git pull https://$GIT_USERNAME:$GIT_PASSWORD@$GIT_REPO prod
+
+                    # Sync files from main to prod
                     rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js . ../temp
-                    
-                    # Commit and push changes to prod
+
+                    # Commit and push changes to prod branch
                     cd ../temp
                     git init
-                    git remote remove origin || true
                     git remote add origin https://$GIT_USERNAME:$GIT_PASSWORD@$GIT_REPO
                     git checkout -b prod
                     git add .
@@ -125,6 +128,7 @@ pipeline {
         }
     }
 }
+
 
         stage('Deploy to Kubernetes') {
             when {
