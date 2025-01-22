@@ -1,54 +1,67 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKERHUB_USERNAME = 'israni141'
-        DOCKERHUB_TOKEN = 'dckr_pat_IpyOZ8wV2Ycx6C7P2fDBWqcIlEI' // Use token for secure authentication
-        DOCKERHUB_REPO = 'israni141/devops'
-        GIT_CREDENTIALS_ID = 'da5c97ea-6aae-4918-9418-7104dc229832' // Jenkins credential ID
-        GIT_REPO = 'https://github.com/vaibhav20014/cicd-pipeline.git' // Replace with your repo URL
-    }
-  
     stages {
-        stage('Delete Old Docker Hub Images') { 
-            steps {
+        stage('Install Docker Compose') {
+            steps { 
                 script {
-                    echo "Deleting old Docker Hub images..."
-                    try {
-                        sh """
-                            curl -s -X DELETE \
-                            -u $DOCKERHUB_USERNAME:$DOCKERHUB_TOKEN \
-                            https://hub.docker.com/v2/repositories/$DOCKERHUB_REPO/manifests/sha256:b8dbb402ed47edfd74a100fc5318362fd2a7bfa3fecc3ffe54bac14a682b7c74
-                        """
-                        echo "Old image deleted: nginx1-latest"
-                    } catch (Exception e) {
-                        echo "Failed to delete old image: ${e.getMessage()}"
+                    // Check if docker-compose is installed
+                    def dockerComposeInstalled = sh(script: 'which docker-compose', returnStdout: true).trim()
+                    if (!dockerComposeInstalled) {
+                        echo 'Docker Compose is not installed. Installing...'
+                        // Install Docker Compose
+                        sh '''
+                            sudo curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+                            sudo chmod +x /usr/local/bin/docker-compose
+                        '''
+                    } else {  
+                        echo 'Docker Compose is already installed.'
                     }
                 }
             }
         }
 
-        stage('Build and Push NGINX Docker Image') {
+        stage('Clone Repository') {
+            steps {
+                git (
+                    url: 'https://github.com/vaibhav20014/cicd-pipeline.git',
+                    branch: 'main',
+                    credentialsId: 'da5c97ea-6aae-4918-9418-7104dc229832'
+                )
+            }
+        }
+
+        stage('SonarQube Analysis') {
             steps {
                 script {
-                    echo "Building and pushing a new NGINX Docker image..."
-                    sh """
-                        docker build -t $DOCKERHUB_REPO:nginx1-latest -f Dockerfile .
-                        echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
-                        docker push $DOCKERHUB_REPO:nginx1-latest
-                    """
+                    def sonarqubeScannerHome = tool name: 'Sonar'
+
+                    withCredentials([string(credentialsId: 'Sonar', variable: 'sonarLogin')]) {
+                        sh """
+                            ${sonarqubeScannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=cicd-pipeline \
+                            -Dsonar.host.url=http://103.251.252.115:9000 \
+                            -Dsonar.login=${sonarLogin}
+                        """
+                    }
                 }
             }
         }
 
-        stage('Build and Push API Docker Image') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    echo "Building and pushing a new API Docker image..."
+                    sh 'docker build -t israni141/devops:my-api-latest .'
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([string(credentialsId: 'DockerHub', variable: 'dockerHubPassword')]) {
                     sh """
-                        docker build -t $DOCKERHUB_REPO:my-api-latest -f Dockerfile.node .
-                        echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
-                        docker push $DOCKERHUB_REPO:my-api-latest
+                        echo ${dockerHubPassword} | docker login -u israni141 --password-stdin
+                        docker push israni141/devops:my-api-latest
                     """
                 }
             }
@@ -57,97 +70,41 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    echo "Running functional tests on the deployed containers..."
-                    try {
-                        sh """
-                            npm install @playwright/test -D
-                            npx playwright install --with-deps
-                            npx playwright test
-                        """
-                        echo "Tests passed successfully!"
-                        currentBuild.result = 'SUCCESS'
-                    } catch (Exception e) {
-                        echo "Tests failed: ${e.getMessage()}"
-                        currentBuild.result = 'FAILURE'
-                        error "Functional tests failed. Stopping pipeline."
-                    }
+                    echo 'Running functional tests on the deployed containers...'
+                    sh '''
+                        npm install @playwright/test -D
+                        npx playwright install --with-deps
+                        npx playwright test
+                    '''
+                    echo 'Tests passed successfully!'
                 }
             }
         }
 
         stage('Delete Kubernetes Pod') {
-            when {
-                expression { currentBuild.result == 'SUCCESS' }
-            }
             steps {
                 script {
-                    echo "Deleting old Kubernetes pod..."
-                    sh """
-                        kubectl --kubeconfig kube.conf delete pod nginx-api-pod --ignore-not-found=true
-                    """
+                    echo 'Deleting old Kubernetes pod...'
+                    sh 'kubectl --kubeconfig kube.conf delete pod nginx-api-pod --ignore-not-found=true'
                 }
             }
         }
-stage('Push Main to Prod Branch') {
-    when {
-        expression { currentBuild.result == 'SUCCESS' }
-    }
-    steps {
-        script {
-            echo "Pushing changes from main branch to prod branch..."
-            withCredentials([usernamePassword(credentialsId: 'da5c97ea-6aae-4918-9418-7104dc229832', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                sh """
-                    # Navigate to the workspace where the repo is already cloned
-                    cd ${env.WORKSPACE}
 
-                    # Configure Git identity (if not already set)
-                    git config user.name "$GIT_USERNAME"
-                    git config user.email "kalevaibhav740@gmail.com"
-
-                    # Ensure we're on the main branch and pull the latest changes
-                    git checkout main
-                    git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git main
-
-                    # Switch to the prod branch and pull the latest changes
-                    git checkout prod
-                    git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod
-
-                    # Sync files from the main branch to prod (excluding Jenkinsfile and functional tests)
-                    rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js ${env.WORKSPACE}/ ./
-
-                    # Stage, commit, and push the changes to the prod branch
-                    git add .
-                    git commit -m "Syncing main branch changes to prod branch"
-                    git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod
-                """
-
-            }
-        }
-    }
-}
-
-
-        stage('Deploy to Kubernetes') {
-            when {
-                expression { currentBuild.result == 'SUCCESS' }
-            }
+        stage('Push Main to Prod Branch') {
             steps {
                 script {
-                    echo "Applying Kubernetes deployment..."
-                    sh """
-                        kubectl --kubeconfig kube.conf apply -f nginxbuld.yaml
-                    """
+                    echo 'Pushing changes from main branch to prod branch...'
+                    withCredentials([usernamePassword(credentialsId: 'GIT_CREDENTIALS_ID', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                        sh '''
+                            git checkout main
+                            git pull origin main
+                            git checkout prod
+                            git merge main
+                            git push origin prod
+                        '''
+                    }
                 }
             }
-        }
-    }
-
-    post {
-        failure {
-            echo 'Pipeline failed!'
-        }
-        success {
-            echo 'Pipeline completed successfully!'
         }
     }
 }
