@@ -78,7 +78,7 @@ pipeline {
                     echo "Running functional tests on the deployed containers..."
                     try {
                         sh """
-                            npx playwright test --no-cache --force
+                            npx playwright test 
                         """
                         echo "Tests passed successfully!"
                         currentBuild.result = 'SUCCESS'
