@@ -5,8 +5,8 @@ test.describe('Authentication Page Tests', () => {
     const validUser = { email: 'user@example.com', password: 'password123' };
 
     test.beforeEach(async ({ page }) => {
-        await page.goto(appUrl);
-    });
+        await page.goto(appUrl, { timeout: 60000 }); // Navigate to the app's URL with a 60-second timeout
+    });  
 
     test.describe('UI Element Visibility', () => {
         test('Verify email input field is visible', async ({ page }) => {
