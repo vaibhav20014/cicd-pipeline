@@ -11,6 +11,6 @@ spec:
       image: israni141/devops:nginx1-latest
       imagePullPolicy: Always
       ports: 
-        - containerPort: 8000
+        - containerPort: 8000 
  
  
