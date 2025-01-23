@@ -1,117 +1,179 @@
-import { test, expect } from '@playwright/test';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+    <style>
+        /* General styles */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
 
-test.describe('Authentication Page Tests with Real API', () => {
-    const appUrl = 'http://103.251.252.106:31823/'; // Replace with your app URL
-    const apiBaseUrl = 'http://103.251.252.106:31823'; // Replace with your API base URL
-    const validUser = { email: 'user@example.com', password: 'password123' };
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-    test.beforeEach(async ({ page }) => {
-        await page.goto(appUrl);
-    });
+        .login-box {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            height: 60vh;
+            width: 50vh;
+            justify-content: space-evenly;
+            align-content: center;
+            flex-direction: column;
+        }
 
-    test.describe('UI Element Visibility', () => {
-        test('Verify email input field is visible', async ({ page }) => {
-            const emailInput = page.locator('#email');
-            await expect(emailInput).toBeVisible();
+        .image-container {
+            margin-right: 20px;
+        }
+
+        .image-container img {
+            max-width: 150px;
+            height: auto;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        #signInButton {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        #signUpButton {
+            background-color: #28a745;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-box">
+            <div class="image-container">
+                <img src="Media/Logo.png" alt="Login Image">
+            </div>
+            <h2>!!Sign Now@</h2>
+            <form id="authForm">
+                <div class="input-group">
+                    <label>
+                        <span>Email:</span>
+                        <input type="email" id="email" placeholder="Enter your Email" required>
+                    </label>
+                </div>
+
+                <div class="input-group">
+                    <label>
+                        <span>Password:</span>
+                        <input type="password" id="password" placeholder="Enter your Password" required>
+                    </label>
+                </div>
+                <button type="button" id="signInButton">Sign In</button>
+                <button type="button" id="signUpButton">Sign Up</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Get references to the email and password inputs, and the sign-in and sign-up buttons
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
+        const signInButton = document.getElementById("signInButton");
+        const signUpButton = document.getElementById("signUpButton");
+
+        // Function to handle API errors
+        function handleError(error) {
+            alert("Error: " + error.message);
+        }
+
+        // Function to handle the success or failure of registration and login
+        function handleResponse(response, type) {
+            if (response.token) {
+                localStorage.setItem('authToken', response.token);
+                window.location.href = "test.html";
+            } else if (type === 'login' && response.message === 'Invalid credentials') {
+                alert("Sign-In Error: Invalid credentials");
+            } else if (type === 'register' && response.message === 'Email already exists') {
+                alert("Email already exists");
+            } else if (response.message) {
+                alert(response.message);
+            }
+        }
+
+        // Validate form inputs
+        function validateInputs(email, password) {
+            if (!email || !password) {
+                alert("Please fill in all fields.");
+                return false;
+            }
+            return true;
+        }
+
+        // Sign In Button Click Event
+        signInButton.addEventListener("click", () => {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!validateInputs(email, password)) return;
+
+            // Send a POST request to your login endpoint
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            })
+                .then((response) => response.json())
+                .then((data) => handleResponse(data, 'login'))
+                .catch(handleError);
         });
 
-        test('Verify password input field is visible', async ({ page }) => {
-            const passwordInput = page.locator('#password');
-            await expect(passwordInput).toBeVisible();
+        // Sign Up Button Click Event
+        signUpButton.addEventListener("click", () => {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!validateInputs(email, password)) return;
+
+            // Send a POST request to your register endpoint
+            fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            })
+                .then((response) => response.json())
+                .then((data) => handleResponse(data, 'register'))
+                .catch(handleError);
         });
-
-        test('Verify Sign In button is visible', async ({ page }) => {
-            const signInButton = page.locator('#signInButton');
-            await expect(signInButton).toBeVisible();
-        });
-
-        test('Verify Sign Up button is visible', async ({ page }) => {
-            const signUpButton = page.locator('#signUpButton');
-            await expect(signUpButton).toBeVisible();
-        });
-    });
-
-    test.describe('Authentication Functionality with Real API', () => {
-        test('Sign In with valid credentials should redirect', async ({ page }) => {
-            // Fill the form fields
-            await page.fill('#email', validUser.email);
-            await page.fill('#password', validUser.password);
-
-            // Click the Sign In button
-            await page.click('#signInButton');
-
-            // Wait for API response and verify localStorage
-            await page.waitForFunction(() => localStorage.getItem('authToken') !== null);
-
-            const token = await page.evaluate(() => localStorage.getItem('authToken'));
-            expect(token).not.toBeNull();
-
-            // Validate redirection
-            await page.waitForURL(/test.html/);
-            expect(page.url()).toContain('test.html');
-        });
-
-        test('Sign Up with valid credentials should redirect', async ({ page }) => {
-            const newEmail = `newuser_${Date.now()}@example.com`; // Unique email for each run
-
-            // Fill the form fields
-            await page.fill('#email', newEmail);
-            await page.fill('#password', validUser.password);
-
-            // Click the Sign Up button
-            await page.click('#signUpButton');
-
-            // Wait for API response
-            const successMessage = await page.waitForSelector('text=Registration successful');
-            await expect(successMessage).toBeVisible();
-
-            // Validate redirection
-            await page.waitForURL(/test.html/);
-            expect(page.url()).toContain('test.html');
-        });
-
-        test('Sign In with incorrect credentials should show error alert', async ({ page }) => {
-            // Fill the form fields with incorrect credentials
-            await page.fill('#email', 'wrong@example.com');
-            await page.fill('#password', 'wrongpassword');
-
-            // Click the Sign In button
-            await page.click('#signInButton');
-
-            // Validate error alert
-            const alert = await page.locator('text=Sign In Error: Invalid credentials');
-            await expect(alert).toBeVisible();
-        });
-
-        test('Sign Up with existing email should show error alert', async ({ page }) => {
-            // Fill the form fields with an existing email
-            await page.fill('#email', validUser.email);
-            await page.fill('#password', validUser.password);
-
-            // Click the Sign Up button
-            await page.click('#signUpButton');
-
-            // Validate error alert
-            const alert = await page.locator('text=Email already exists');
-            await expect(alert).toBeVisible();
-        });
-
-        test('Sign In with empty fields should show alert', async ({ page }) => {
-            // Leave fields empty and click the Sign In button
-            await page.click('#signInButton');
-
-            // Validate alert for empty fields
-            const alert = await page.locator('text=Please fill in all fields.');
-            await expect(alert).toBeVisible();
-        });
-
-        test('Sign Up with empty fields should show alert', async ({ page }) => {
-            // Leave fields empty and click the Sign Up button
-            await page.click('#signUpButton');
-
-            // Validate alert for empty fields
-            const alert = await page.locator('text=Please fill in all fields.');
-            await expect(alert).toBeVisible();
-        });
-    });
-});
+    </script>
+</body>
+</html>
