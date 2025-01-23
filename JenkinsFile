@@ -78,9 +78,9 @@ pipeline {
                     echo "Running functional tests on the deployed containers..."
                     try {
                         sh """
-                            npm install @playwright/test                                              
+                            npm install @playwright/test
                             npx playwright install
-                            npx playwright test 
+                            npx playwright test
                         """
                         echo "Tests passed successfully!"
                         currentBuild.result = 'SUCCESS'
@@ -108,20 +108,19 @@ pipeline {
         }
 
         stage('Clean Workspace') {
-    steps {
-        script {
-            echo "Fixing permissions and cleaning Jenkins workspace..."
-            sh """
-                sudo chown -R \$(id -u):\$(id -g) ${env.WORKSPACE}
-                sudo chmod -R u+w ${env.WORKSPACE}
-                rm -rf node_modules
-                git reset --hard
-                git clean -fdx
-            """
+            steps {
+                script {
+                    echo "Fixing permissions and cleaning Jenkins workspace..."
+                    sh """
+                        sudo chown -R \$(id -u):\$(id -g) ${env.WORKSPACE}
+                        sudo chmod -R u+w ${env.WORKSPACE}
+                        rm -rf node_modules
+                        git reset --hard
+                        git clean -fdx
+                    """
+                }
+            }
         }
-    }
-}
-
 
         stage('Push Main to Prod Branch') {
             when {
@@ -138,7 +137,14 @@ pipeline {
                             git checkout main
                             git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git main
                             git checkout -f prod
-                            git reset --hard main  # Make prod exactly like main
+                            git reset --hard main  # Sync prod branch with main branch
+
+                            # Exclude the Jenkinsfile from being staged for commit
+                            git reset HEAD Jenkinsfile
+                            git restore --staged Jenkinsfile
+
+                            # Push the changes to prod without the Jenkinsfile
+                            git commit -m "Syncing main branch changes to prod branch, excluding Jenkinsfile"
                             git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod --force
                         """
                     }
