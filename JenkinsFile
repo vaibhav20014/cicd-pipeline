@@ -78,7 +78,7 @@ pipeline {
                     echo "Running functional tests on the deployed containers..."
                     try {
                         sh """
-                            npx playwright test
+                            npx playwright test --no-cache --force
                         """
                         echo "Tests passed successfully!"
                         currentBuild.result = 'SUCCESS'
@@ -108,10 +108,14 @@ pipeline {
         stage('Clean Workspace') {
             steps {
                 script {
-                    echo "Cleaning Jenkins workspace..."
-                    sh 'rm -rf node_modules'
-                    sh 'git reset --hard'
-                    sh 'git clean -fdx'
+                    echo "Fixing permissions and cleaning Jenkins workspace..."
+                    sh """
+                        sudo chown -R $(id -u):$(id -g) ${env.WORKSPACE}
+                        sudo chmod -R u+w ${env.WORKSPACE}
+                        rm -rf node_modules
+                        git reset --hard
+                        git clean -fdx
+                    """
                 }
             }
         }
