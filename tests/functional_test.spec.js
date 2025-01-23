@@ -35,8 +35,6 @@ test.describe('Authentication Page Tests', () => {
             await page.fill('#email', validUser.email);
             await page.fill('#password', validUser.password);
             await page.click('#signInButton');
-
-            // Wait for navigation
             await page.waitForURL('http://103.251.252.106:31823/test.html');
             expect(page.url()).toBe('http://103.251.252.106:31823/test.html');
         });
