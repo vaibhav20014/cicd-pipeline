@@ -106,19 +106,20 @@ pipeline {
         }
 
         stage('Clean Workspace') {
-            steps {
-                script {
-                    echo "Fixing permissions and cleaning Jenkins workspace..."
-                    sh """
-                        sudo chown -R $(id -u):$(id -g) ${env.WORKSPACE}
-                        sudo chmod -R u+w ${env.WORKSPACE}
-                        rm -rf node_modules
-                        git reset --hard
-                        git clean -fdx
-                    """
-                }
-            }
+    steps {
+        script {
+            echo "Fixing permissions and cleaning Jenkins workspace..."
+            sh """
+                sudo chown -R \$(id -u):\$(id -g) ${env.WORKSPACE}
+                sudo chmod -R u+w ${env.WORKSPACE}
+                rm -rf node_modules
+                git reset --hard
+                git clean -fdx
+            """
         }
+    }
+}
+
 
         stage('Push Main to Prod Branch') {
             when {
