@@ -138,11 +138,8 @@ pipeline {
                             git checkout main
                             git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git main
                             git checkout -f prod
-                            git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod
-                            rsync -av --exclude=Jenkinsfile --exclude=tests/functional_test.spec.js ${env.WORKSPACE}/ ./
-                            git add .
-                            git commit -m "Syncing main branch changes to prod branch"
-                            git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod
+                            git reset --hard main  # Make prod exactly like main
+                            git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod --force
                         """
                     }
                 }
