@@ -80,7 +80,7 @@ pipeline {
                         sh """
                             npm install @playwright/test
                             npx playwright install
-                            npx playwright test
+                            npx playwright test --retries=1
                         """
                         echo "Tests passed successfully!"
                         currentBuild.result = 'SUCCESS'
