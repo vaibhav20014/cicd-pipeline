@@ -140,11 +140,11 @@ pipeline {
                             git reset --hard main  # Sync prod branch with main branch
 
                             # Exclude the Jenkinsfile from being staged for commit
-                            git reset HEAD Jenkinsfile
-                            git restore --staged Jenkinsfile
+                            git reset HEAD JenkinsFile
+                            git restore --staged JenkinsFile
 
                             # Push the changes to prod without the Jenkinsfile
-                            git commit -m "Syncing main branch changes to prod branch, excluding Jenkinsfile"
+                            git commit -m "Syncing main branch changes to prod branch, excluding JenkinsFile"
                             git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod --force
                         """
                     }
