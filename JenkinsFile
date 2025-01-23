@@ -105,6 +105,17 @@ pipeline {
             }
         }
 
+        stage('Clean Workspace') {
+            steps {
+                script {
+                    echo "Cleaning Jenkins workspace..."
+                    sh 'rm -rf node_modules'
+                    sh 'git reset --hard'
+                    sh 'git clean -fdx'
+                }
+            }
+        }
+
         stage('Push Main to Prod Branch') {
             when {
                 expression { currentBuild.result == 'SUCCESS' }
