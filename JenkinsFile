@@ -127,7 +127,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo "Pushing changes from main branch to prod branch..."
+                    echo "Pushing changes from main branch to prod branch, excluding JenkinsFile..."
                     withCredentials([usernamePassword(credentialsId: 'da5c97ea-6aae-4918-9418-7104dc229832', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                         sh """
                             cd ${env.WORKSPACE}
@@ -137,8 +137,8 @@ pipeline {
                             git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git main
                             git checkout -f prod
                             git reset --hard main
-                            git reset HEAD JenkinsFile
-                            git restore --staged JenkinsFile
+                            git reset HEAD JenkinsFile  # Unstage JenkinsFile
+                            git restore --staged JenkinsFile  # Ensure JenkinsFile is not staged
                             git clean -fdx  # Remove untracked files
                             git commit -am "Syncing main branch changes to prod branch, excluding JenkinsFile" || echo "No changes to commit"
                             git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod --force
@@ -147,6 +147,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('Deploy to Kubernetes') {
             when {
