@@ -37,8 +37,8 @@ test.describe('Authentication Page Tests', () => {
             await page.click('#signInButton');
 
             // Wait for navigation
-            await page.waitForURL(/test.html/);
-            expect(page.url()).toContain('test.html');
+            await page.waitForURL('http://103.251.252.106:31823/test.html');
+            expect(page.url()).toBe('http://103.251.252.106:31823/test.html');
         });
 
         test('Sign Up with valid credentials should redirect', async ({ page }) => {
@@ -47,8 +47,8 @@ test.describe('Authentication Page Tests', () => {
             await page.click('#signUpButton');
 
             // Wait for navigation
-            await page.waitForURL(/test.html/);
-            expect(page.url()).toContain('test.html');
+            await page.waitForURL('http://103.251.252.106:31823/test.html');
+            expect(page.url()).toBe('http://103.251.252.106:31823/test.html');
         });
 
         test('Sign In with empty fields should show alert', async ({ page }) => {
