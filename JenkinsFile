@@ -2,55 +2,11 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USERNAME = 'israni141'
-        DOCKERHUB_TOKEN = 'dckr_pat_IpyOZ8wV2Ycx6C7P2fDBWqcIlEI'
-        DOCKERHUB_REPO = 'israni141/devops'
         GIT_CREDENTIALS_ID = 'da5c97ea-6aae-4918-9418-7104dc229832'
         GIT_REPO = 'https://github.com/vaibhav20014/cicd-pipeline.git'
     }
 
     stages {
-        
-
-        stage('Delete Old Docker Hub Images') {
-            steps {
-                script {
-                    echo "Deleting old Docker Hub images..."
-                    try {
-                        sh """
-                            curl -s -X DELETE \
-                            -u $DOCKERHUB_USERNAME:$DOCKERHUB_TOKEN \
-                            https://hub.docker.com/v2/repositories/$DOCKERHUB_REPO/manifests/sha256:b8dbb402ed47edfd74a100fc5318362fd2a7bfa3fecc3ffe54bac14a682b7c74
-                        """
-                        echo "Old image deleted: nginx1-latest"
-                    } catch (Exception e) {
-                        echo "Failed to delete old image: ${e.getMessage()}"
-                    }
-                }
-            }
-        }
-
-        stage('Build and Push Docker Images') {
-            steps {
-                script {
-                    echo "Building and pushing Docker images..."
-                    // Build and push NGINX Docker image
-                    sh """
-                        docker build -t $DOCKERHUB_REPO:nginx1-latest -f Dockerfile .
-                        echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
-                        docker push $DOCKERHUB_REPO:nginx1-latest
-                    """
-                    // Build and push API Docker image
-                    sh """
-                        docker build -t $DOCKERHUB_REPO:my-api-latest -f Dockerfile.node .
-                        echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
-                        docker push $DOCKERHUB_REPO:my-api-latest
-                    """
-                }
-            }
-        }
-
-
         stage('Deploy to Kubernetes') {
             steps {
                 script {
