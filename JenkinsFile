@@ -14,8 +14,7 @@ pipeline {
             steps {
                 script {
                     echo "Performing SonarQube analysis..."
-                    def sonarqubeScannerHome = tool name: 'Sonar' // Make sure the SonarQube scanner is installed in Jenkins
-
+                    def sonarqubeScannerHome = tool name: 'Sonar' // Ensure the SonarQube scanner is installed in Jenkins
                     withCredentials([string(credentialsId: 'Sonar', variable: 'sonarLogin')]) {
                         sh """
                             ${sonarqubeScannerHome}/bin/sonar-scanner \
@@ -46,23 +45,17 @@ pipeline {
             }
         }
 
-        stage('Build and Push NGINX Docker Image') {
+        stage('Build and Push Docker Images') {
             steps {
                 script {
-                    echo "Building and pushing a new NGINX Docker image..."
+                    echo "Building and pushing Docker images..."
+                    // Build and push NGINX Docker image
                     sh """
                         docker build -t $DOCKERHUB_REPO:nginx1-latest -f Dockerfile .
                         echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
                         docker push $DOCKERHUB_REPO:nginx1-latest
                     """
-                }
-            }
-        }
-
-        stage('Build and Push API Docker Image') {
-            steps {
-                script {
-                    echo "Building and pushing a new API Docker image..."
+                    // Build and push API Docker image
                     sh """
                         docker build -t $DOCKERHUB_REPO:my-api-latest -f Dockerfile.node .
                         echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
@@ -75,7 +68,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    echo "Running functional tests on the deployed containers..."
+                    echo "Running functional tests..."
                     try {
                         sh """
                             npm install @playwright/test
@@ -92,42 +85,10 @@ pipeline {
             }
         }
 
-        stage('Delete Kubernetes Pod') {
-            when {
-                expression { currentBuild.result == 'SUCCESS' }
-            }
-            steps {
-                script {
-                    echo "Deleting old Kubernetes pod..."
-                    sh """
-                        kubectl --kubeconfig kube.conf delete pod nginx-api-pod --ignore-not-found=true
-                    """
-                }
-            }
-        }
-
-        stage('Clean Workspace') {
-            steps {
-                script {
-                    echo "Fixing permissions and cleaning Jenkins workspace..."
-                    sh """
-                        sudo chown -R \$(id -u):\$(id -g) ${env.WORKSPACE}
-                        sudo chmod -R u+w ${env.WORKSPACE}
-                        rm -rf node_modules
-                        git reset --hard
-                        git clean -fdx
-                    """
-                }
-            }
-        }
-
         stage('Push Main to Prod Branch') {
-            when {
-                expression { currentBuild.result == 'SUCCESS' }
-            }
             steps {
                 script {
-                    echo "Pushing changes from main branch to prod branch, excluding JenkinsFile..."
+                    echo "Syncing main branch to prod branch, excluding JenkinsFile..."
                     withCredentials([usernamePassword(credentialsId: 'da5c97ea-6aae-4918-9418-7104dc229832', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                         sh """
                             cd ${env.WORKSPACE}
@@ -137,22 +98,18 @@ pipeline {
                             git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git main
                             git checkout -f prod
                             git reset --hard main
-                            git reset HEAD JenkinsFile  # Unstage JenkinsFile
-                            git restore --staged JenkinsFile  # Ensure JenkinsFile is not staged
-                            git clean -fdx  # Remove untracked files
+                            git reset HEAD JenkinsFile  # Exclude JenkinsFile
+                            git restore --staged JenkinsFile
+                            git clean -fdx
                             git commit -am "Syncing main branch changes to prod branch, excluding JenkinsFile" || echo "No changes to commit"
-                            git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod --force
+                            git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod --no-verify
                         """
                     }
                 }
             }
         }
 
-
         stage('Deploy to Kubernetes') {
-            when {
-                expression { currentBuild.result == 'SUCCESS' }
-            }
             steps {
                 script {
                     echo "Applying Kubernetes deployment..."
