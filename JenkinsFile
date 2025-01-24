@@ -69,18 +69,22 @@ pipeline {
             steps {
                 script {
                     echo "Running functional tests..."
-                    try {
-                        sh """
-                            npm install @playwright/test
-                            npx playwright install
-                            npx playwright test --retries=1 || echo "Functional tests failed, continuing pipeline"
-                        """
-                        echo "Tests passed successfully!"
-                    } catch (Exception e) {
-                        echo "Tests failed: ${e.getMessage()}"
-                        currentBuild.result = 'SUCCESS' // Mark as success to continue the pipeline
-                        echo "Continuing the pipeline despite test failure"
-                    }
+                    sh """
+                        npm install @playwright/test
+                        npx playwright install
+                        npx playwright test 
+                    """
+                }
+            }
+        }
+
+        stage('Delete NGINX API Pod') {
+            steps {
+                script {
+                    echo "Deleting NGINX API pod..."
+                    sh """
+                        kubectl --kubeconfig kube.conf delete pod nginx-api-pod || echo "Pod not found, skipping deletion."
+                    """
                 }
             }
         }
@@ -89,38 +93,27 @@ pipeline {
             steps {
                 script {
                     echo "Syncing main branch to prod branch, excluding JenkinsFile..."
-                    withCredentials([usernamePassword(credentialsId: 'da5c97ea-6aae-4918-9418-7104dc229832', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                    sh """
-                        cd ${env.WORKSPACE}
-                        git config user.name "$GIT_USERNAME"
-                        git config user.email "kalevaibhav740@gmail.com"
-    
-                        # Checkout or create the prod branch
-                        git checkout prod || git checkout -b prod
-                        git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod --no-rebase || echo "Prod branch is up to date"
-    
-                        # Fetch changes from main
-                        git fetch origin main
-    
-                        # Merge main into prod but exclude JenkinsFile
-                        git checkout origin/main -- . ':!JenkinsFile'
-                        git commit -m "Syncing main branch changes to prod branch, excluding JenkinsFile" || echo "No changes to commit"
-    
-                        # Push the updated prod branch
-                        git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod --no-verify
-                    """
-                    }
-                }
-            }
-        }
+                    withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                        sh """
+                            cd ${env.WORKSPACE}
+                            git config user.name "$GIT_USERNAME"
+                            git config user.email "kalevaibhav740@gmail.com"
 
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    echo "Applying Kubernetes deployment..."
-                    sh """
-                        kubectl --kubeconfig kube.conf apply -f nginxbuld.yaml
-                    """
+                            # Checkout or create the prod branch
+                            git checkout prod || git checkout -b prod
+                            git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod || echo "Prod branch is up to date"
+
+                            # Fetch changes from main
+                            git fetch origin main
+
+                            # Merge main into prod but exclude JenkinsFile
+                            git checkout origin/main -- . ':!JenkinsFile'
+                            git commit -m "Syncing main branch changes to prod branch, excluding JenkinsFile" || echo "No changes to commit"
+
+                            # Push the updated prod branch
+                            git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod --no-verify
+                        """
+                    }
                 }
             }
         }
@@ -128,7 +121,7 @@ pipeline {
 
     post {
         failure {
-            echo 'Pipeline failed, but continuing due to configuration changes!'
+            echo 'Pipeline failed!'
         }
         success {
             echo 'Pipeline completed successfully!'
