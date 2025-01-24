@@ -71,14 +71,18 @@
             background-color: #28a745;
             color: #fff;
         }
+
+        .loading {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="login-box">
-            
-            <h2>!!Sign Now@</h2>
-            <form id="authForm">
+            <h2>Sign Now!</h2>
+            <form id="authForm" action="javascript:void(0);">
                 <div class="input-group">
                     <input type="email" id="email" placeholder="Enter your Email" required>
                 </div>
@@ -98,8 +102,6 @@
         const passwordInput = document.getElementById("password");
         const signInButton = document.getElementById("signInButton");
         const signUpButton = document.getElementById("signUpButton");
-        
-
 
         // Function to handle the success or failure of registration and login
         function handleResponse(response, type) {
@@ -124,12 +126,29 @@
             return true;
         }
 
+        // Display loading state for button
+        function setLoadingState(isLoading) {
+            if (isLoading) {
+                signInButton.classList.add("loading");
+                signInButton.disabled = true;
+                signUpButton.classList.add("loading");
+                signUpButton.disabled = true;
+            } else {
+                signInButton.classList.remove("loading");
+                signInButton.disabled = false;
+                signUpButton.classList.remove("loading");
+                signUpButton.disabled = false;
+            }
+        }
+
         // Sign In Button Click Event
         signInButton.addEventListener("click", () => {
             const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
 
             if (!validateInputs(email, password)) return;
+
+            setLoadingState(true);  // Start loading
 
             // Send a POST request to your login endpoint
             fetch('/login', {
@@ -141,7 +160,8 @@
             })
                 .then((response) => response.json())
                 .then((data) => handleResponse(data, 'login'))
-                .catch(handleError);
+                .catch(handleError)
+                .finally(() => setLoadingState(false)); // End loading
         });
 
         // Sign Up Button Click Event
@@ -150,6 +170,8 @@
             const password = passwordInput.value.trim();
 
             if (!validateInputs(email, password)) return;
+
+            setLoadingState(true);  // Start loading
 
             // Send a POST request to your register endpoint
             fetch('/register', {
@@ -161,8 +183,15 @@
             })
                 .then((response) => response.json())
                 .then((data) => handleResponse(data, 'register'))
-                .catch(handleError);
+                .catch(handleError)
+                .finally(() => setLoadingState(false)); // End loading
         });
+
+        // Handle errors
+        function handleError(error) {
+            console.error('Error:', error);
+            alert("Something went wrong, please try again later.");
+        }
     </script>
 </body>
 </html>
