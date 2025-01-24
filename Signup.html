@@ -76,9 +76,7 @@
 <body>
     <div class="container">
         <div class="login-box">
-            <div class="image-container">
-                <img src="Media/Logo.png" alt="Login Image">
-            </div>
+            
             <h2>!!Sign Now@</h2>
             <form id="authForm">
                 <div class="input-group">
@@ -101,14 +99,7 @@
         const signInButton = document.getElementById("signInButton");
         const signUpButton = document.getElementById("signUpButton");
         
-        console.log(emailInput);
-        console.log(passwordInput);
-        console.log(signInButton);
-        console.log(signUpButton);
-        // Function to handle API errors
-        function handleError(error) {
-            alert("Error: " + error.message);
-        }
+
 
         // Function to handle the success or failure of registration and login
         function handleResponse(response, type) {
