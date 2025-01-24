@@ -11,7 +11,7 @@
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
         }
-
+ 
         .container {
             display: flex;
             justify-content: center;
@@ -31,6 +31,15 @@
             justify-content: space-evenly;
             align-content: center;
             flex-direction: column;
+        }
+
+        .image-container {
+            margin-right: 20px;
+        }
+
+        .image-container img {
+            max-width: 150px;
+            height: auto;
         }
 
         .input-group {
@@ -62,18 +71,16 @@
             background-color: #28a745;
             color: #fff;
         }
-
-        .loading {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="login-box">
-            <h2>Sign Now!</h2>
-            <form id="authForm" action="javascript:void(0);">
+            <div class="image-container">
+                <img src="Media/Logo.png" alt="Login Image">
+            </div>
+            <h2>!!Sign Now@</h2>
+            <form id="authForm">
                 <div class="input-group">
                     <input type="email" id="email" placeholder="Enter your Email" required>
                 </div>
@@ -81,8 +88,8 @@
                 <div class="input-group">
                     <input type="password" id="password" placeholder="Enter your Password" required>
                 </div>
-                <button type="button" id="signInButton">Sign In</button>
-                <button type="button" id="signUpButton">Sign Up</button>
+                <button type="button" id="signInButton">Sign In!</button>
+                <button type="button" id="signUpButton">Sign Up!</button>
             </form>
         </div>
     </div>
@@ -93,6 +100,15 @@
         const passwordInput = document.getElementById("password");
         const signInButton = document.getElementById("signInButton");
         const signUpButton = document.getElementById("signUpButton");
+        
+        console.log(emailInput);
+        console.log(passwordInput);
+        console.log(signInButton);
+        console.log(signUpButton);
+        // Function to handle API errors
+        function handleError(error) {
+            alert("Error: " + error.message);
+        }
 
         // Function to handle the success or failure of registration and login
         function handleResponse(response, type) {
@@ -102,7 +118,7 @@
             } else if (type === 'login' && response.message === 'Invalid credentials') {
                 alert("Sign-In Error: Invalid credentials");
             } else if (type === 'register' && response.message === 'Email already exists') {
-                alert("Email already exists. Please use a different email.");
+                alert("Email already exists");
             } else if (response.message) {
                 alert(response.message);
             }
@@ -117,29 +133,12 @@
             return true;
         }
 
-        // Display loading state for button
-        function setLoadingState(isLoading) {
-            if (isLoading) {
-                signInButton.classList.add("loading");
-                signInButton.disabled = true;
-                signUpButton.classList.add("loading");
-                signUpButton.disabled = true;
-            } else {
-                signInButton.classList.remove("loading");
-                signInButton.disabled = false;
-                signUpButton.classList.remove("loading");
-                signUpButton.disabled = false;
-            }
-        }
-
         // Sign In Button Click Event
         signInButton.addEventListener("click", () => {
             const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
 
             if (!validateInputs(email, password)) return;
-
-            setLoadingState(true);  // Start loading
 
             // Send a POST request to your login endpoint
             fetch('/login', {
@@ -149,15 +148,9 @@
                 },
                 body: JSON.stringify({ email, password }),
             })
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error("Network response was not ok.");
-                    }
-                    return response.json();
-                })
+                .then((response) => response.json())
                 .then((data) => handleResponse(data, 'login'))
-                .catch((error) => alert("Invalid credentials))
-                .finally(() => setLoadingState(false)); // End loading
+                .catch(handleError);
         });
 
         // Sign Up Button Click Event
@@ -167,8 +160,6 @@
 
             if (!validateInputs(email, password)) return;
 
-            setLoadingState(true);  // Start loading
-
             // Send a POST request to your register endpoint
             fetch('/register', {
                 method: 'POST',
@@ -177,26 +168,10 @@
                 },
                 body: JSON.stringify({ email, password }),
             })
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error("Network response was not ok.");
-                    }
-                    return response.json();
-                })
-                .then((data) => {
-                    if (data.message === 'User successfully registered') {
-                        alert("User successfully registered!");
-                    } else if (data.message === 'Email already exists') {
-                        alert("This email is already registered. Please try a different one.");
-                    } else {
-                        alert("Registration failed. Please try again.");
-                    }
-                    handleResponse(data, 'register');
-                })
-                .catch((error) => alert("Sign-Up Error: " + error.message))
-                .finally(() => setLoadingState(false)); // End loading
+                .then((response) => response.json())
+                .then((data) => handleResponse(data, 'register'))
+                .catch(handleError);
         });
-
     </script>
 </body>
 </html>
