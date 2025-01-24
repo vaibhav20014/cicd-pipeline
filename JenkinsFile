@@ -94,27 +94,30 @@ pipeline {
                 script {
                     echo "Syncing main branch to prod branch, excluding JenkinsFile..."
                     withCredentials([usernamePassword(credentialsId: 'da5c97ea-6aae-4918-9418-7104dc229832', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-
-                       sh """
+                        sh """
                             cd ${env.WORKSPACE}
                             git config user.name "$GIT_USERNAME"
                             git config user.email "kalevaibhav740@gmail.com"
-
+                    
+                            # Set the GitHub remote URL to use the credentials from Jenkins environment
+                            git remote set-url origin https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git
+                    
                             # Checkout or create the prod branch
                             git checkout prod || git checkout -b prod
-                            git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod || echo "Prod branch is up to date"
-
+                            git pull origin prod || echo "Prod branch is up to date"
+                    
                             # Fetch changes from main
                             git fetch origin main
-
+                    
                             # Merge main into prod but exclude JenkinsFile
                             git checkout origin/main -- . ':!JenkinsFile'
                             git commit -m "Syncing main branch changes to prod branch, excluding JenkinsFile" || echo "No changes to commit"
-
+                    
                             # Push the updated prod branch
-                            git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod --no-verify
+                            git push origin prod --no-verify
                         """
                     }
+
                 }
             }
         }
