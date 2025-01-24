@@ -175,18 +175,22 @@
 
             // Send a POST request to your register endpoint
             fetch('/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password }),
-            })
-                .then((response) => response.json())
-                .then((data) => handleResponse(data, 'register'))
-                .catch(handleError)
-                .finally(() => setLoadingState(false)); // End loading
-        });
-
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.isUserRegistered) {
+                alert("User successfully registered!");
+            }
+            handleResponse(data, 'register');
+        })
+        .catch(handleError)
+        .finally(() => setLoadingState(false)); // End loading
+});
         // Handle errors
         function handleError(error) {
             console.error('Error:', error);
