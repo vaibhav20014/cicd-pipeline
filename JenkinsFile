@@ -93,7 +93,7 @@ pipeline {
             steps {
                 script {
                     echo "Syncing main branch to prod branch, excluding JenkinsFile..."
-                    withCredentials([usernamePassword(credentialsId:'da5c97ea-6aae-4918-9418-7104dc229832', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                    withCredentials([usernamePassword(credentialsId:da5c97ea-6aae-4918-9418-7104dc229832, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                         sh """
                             cd ${env.WORKSPACE}
                             git config user.name "$GIT_USERNAME"
