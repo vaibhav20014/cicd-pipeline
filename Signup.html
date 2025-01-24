@@ -11,7 +11,7 @@
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
         }
- 
+
         .container {
             display: flex;
             justify-content: center;
@@ -31,15 +31,6 @@
             justify-content: space-evenly;
             align-content: center;
             flex-direction: column;
-        }
-
-        .image-container {
-            margin-right: 20px;
-        }
-
-        .image-container img {
-            max-width: 150px;
-            height: auto;
         }
 
         .input-group {
@@ -141,6 +132,25 @@
             }
         }
 
+        // Function to check if email is already registered
+        function checkEmailAvailability(email) {
+            return fetch('/check-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                return data.isEmailAvailable;
+            })
+            .catch(() => {
+                alert("Error checking email availability.");
+                return false;
+            });
+        }
+
         // Sign In Button Click Event
         signInButton.addEventListener("click", () => {
             const email = emailInput.value.trim();
@@ -165,11 +175,18 @@
         });
 
         // Sign Up Button Click Event
-        signUpButton.addEventListener("click", () => {
+        signUpButton.addEventListener("click", async () => {
             const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
 
             if (!validateInputs(email, password)) return;
+
+            // Check if the email is already registered
+            const isEmailAvailable = await checkEmailAvailability(email);
+            if (!isEmailAvailable) {
+                alert("This email is already registered.");
+                return;
+            }
 
             setLoadingState(true);  // Start loading
 
@@ -190,7 +207,7 @@
         // Handle errors
         function handleError(error) {
             console.error('Error:', error);
-            alert("Invalid credentials");
+            alert("Something went wrong, please try again later.");
         }
     </script>
 </body>
