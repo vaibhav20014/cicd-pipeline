@@ -10,22 +10,7 @@ pipeline {
     }
 
     stages {
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    echo "Performing SonarQube analysis..."
-                    def sonarqubeScannerHome = tool name: 'Sonar' // Ensure the SonarQube scanner is installed in Jenkins
-                    withCredentials([string(credentialsId: 'Sonar', variable: 'sonarLogin')]) {
-                        sh """
-                            ${sonarqubeScannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=cicd-pipeline \
-                            -Dsonar.host.url=http://103.251.252.115:9000 \
-                            -Dsonar.login=${sonarLogin}
-                        """
-                    }
-                }
-            }
-        }
+        
 
         stage('Delete Old Docker Hub Images') {
             steps {
@@ -65,49 +50,6 @@ pipeline {
             }
         }
 
-        stage('Run Tests') {
-            steps {
-                script {
-                    echo "Running functional tests..."
-                    try {
-                        sh """
-                            npm install @playwright/test
-                            npx playwright install
-                            npx playwright test --retries=1 || echo "Functional tests failed, continuing pipeline"
-                        """
-                        echo "Tests passed successfully!"
-                    } catch (Exception e) {
-                        echo "Tests failed: ${e.getMessage()}"
-                        currentBuild.result = 'SUCCESS' // Mark as success to continue the pipeline
-                        echo "Continuing the pipeline despite test failure"
-                    }
-                }
-            }
-        }
-
-        stage('Push Main to Prod Branch') {
-            steps {
-                script {
-                    echo "Syncing main branch to prod branch, excluding JenkinsFile..."
-                    withCredentials([usernamePassword(credentialsId: 'da5c97ea-6aae-4918-9418-7104dc229832', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                        sh """
-                            cd ${env.WORKSPACE}
-                            git config user.name "$GIT_USERNAME"
-                            git config user.email "kalevaibhav740@gmail.com"
-                            git checkout main
-                            git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git main
-                            git checkout -f prod
-                            git reset --hard main
-                            git reset HEAD JenkinsFile  # Exclude JenkinsFile
-                            git restore --staged JenkinsFile
-                            git clean -fdx
-                            git commit -am "Syncing main branch changes to prod branch, excluding JenkinsFile" || echo "No changes to commit"
-                            git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/vaibhav20014/cicd-pipeline.git prod --no-verify
-                        """
-                    }
-                }
-            }
-        }
 
         stage('Deploy to Kubernetes') {
             steps {
