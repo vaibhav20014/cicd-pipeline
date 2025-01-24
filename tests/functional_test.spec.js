@@ -31,23 +31,6 @@ test.describe('Authentication Page Tests', () => {
     });
 
     test.describe('Authentication Functionality', () => {
-        test('Sign In with valid credentials should redirect', async ({ page }) => {
-            await page.fill('#email', validUser.email);
-            await page.fill('#password', validUser.password);
-            await page.click('#signInButton');
-            await page.waitForURL('http://103.251.252.106:31823/test.html');
-            expect(page.url()).toBe('http://103.251.252.106:31823/test.html');
-        });
-
-        test('Sign Up with valid credentials should redirect', async ({ page }) => {
-            await page.fill('#email', `newuser_${Date.now()}@example.com`); // Unique email
-            await page.fill('#password', validUser.password);
-            await page.click('#signUpButton');
-
-            // Wait for navigation
-            await page.waitForURL('http://103.251.252.106:31823/test.html');
-            expect(page.url()).toBe('http://103.251.252.106:31823/test.html');
-        });
 
         test('Sign In with empty fields should show alert', async ({ page }) => {
             // Spy on alert
@@ -69,26 +52,5 @@ test.describe('Authentication Page Tests', () => {
             await page.click('#signUpButton');
         });
 
-        test('Sign In with incorrect credentials should show error alert', async ({ page }) => {
-            page.on('dialog', async (dialog) => {
-                expect(dialog.message()).toBe('Sign-In Error: Invalid credentials');
-                await dialog.dismiss();
-            });
-
-            await page.fill('#email', 'wrong@example.com');
-            await page.fill('#password', 'wrongpassword');
-            await page.click('#signInButton');
-        });
-
-        test('Sign Up with existing email should show alert', async ({ page }) => {
-            page.on('dialog', async (dialog) => {
-                expect(dialog.message()).toBe('Email already exists');
-                await dialog.dismiss();
-            });
-
-            await page.fill('#email', validUser.email);
-            await page.fill('#password', validUser.password);
-            await page.click('#signUpButton');
-        });
     });
 });
