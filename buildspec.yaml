@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
+
+  build:
+    commands:
+      - echo Building the Docker image...
+      - docker build -t my-app .
+      - docker tag my-app:latest $ECR_REPOSITORY_URI/my-app:latest
+
+  post_build:
+    commands:
+      - echo Pushing the Docker image to Amazon ECR...
+      - docker push $ECR_REPOSITORY_URI/my-app:latest
+      - echo Docker image pushed successfully.
+      - echo Updating ECS service or EKS deployment...
+      # Uncomment based on your deployment target:
+      # - aws ecs update-service --cluster my-ecs-cluster --service my-service --force-new-deployment
+      # - kubectl set image deployment/my-app my-app=$ECR_REPOSITORY_URI/my-app:latest
