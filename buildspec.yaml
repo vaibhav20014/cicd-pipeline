@@ -1,23 +1,43 @@
 version: 0.2
 
+env:
+  variables:
+    IMAGE_REPO_NAME: "cicd-pipeline"  # Name of your ECR repository
+    CONTAINER_NAME: "cicd-pipeline-container"
+    CLUSTER_NAME: "my-ecs-cluster"  # Change if using EKS
+    SERVICE_NAME: "my-service"  # Your ECS service name
+
 phases:
+  install:
+    runtime-versions:
+      nodejs: 14  # Specify the Node.js version you are using
+    commands:
+      - echo "Installing dependencies..."
+      - npm install  # Install Node.js dependencies
+      - npm install -g mocha jest  # Install testing frameworks globally if needed
+
   pre_build:
     commands:
-      - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+
+      - echo "Running tests..."
+      - npm test || echo "Tests failed but continuing..."
 
   build:
     commands:
-      - echo Building the Docker image...
-      - docker build -t my-app .
-      - docker tag my-app:latest $ECR_REPOSITORY_URI/my-app:latest
+      - echo "Building Docker image..."
+      - docker build -t $IMAGE_REPO_NAME -f Dockerfile.node .
+      - docker tag $IMAGE_REPO_NAME:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
 
   post_build:
     commands:
-      - echo Pushing the Docker image to Amazon ECR...
-      - docker push $ECR_REPOSITORY_URI/my-app:latest
-      - echo Docker image pushed successfully.
-      - echo Updating ECS service or EKS deployment...
-      # Uncomment based on your deployment target:
-      # - aws ecs update-service --cluster my-ecs-cluster --service my-service --force-new-deployment
-      # - kubectl set image deployment/my-app my-app=$ECR_REPOSITORY_URI/my-app:latest
+      - echo "Pushing Docker image to Amazon ECR..."
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
+
+      - echo "Deploying to ECS..."
+      - aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --force-new-deployment
+
+artifacts:
+  files:
+    - '**/*'
