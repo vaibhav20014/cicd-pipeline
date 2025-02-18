@@ -4,9 +4,9 @@ env:
   variables:
     IMAGE_REPO_NAME: "cicd_aws"  # Name of your ECR repository
     CLUSTER_NAME: "aws_cicd_cluster"  # Your EKS cluster name
-    KUBERNETES_DEPLOYMENT_FILE: "deployment.yaml"  # Name of your Kubernetes YAML file
-    AWS_ACCOUNT_ID: 390844759906
-    AWS_DEFAULT_REGION: ap-south-1
+    KUBERNETES_DEPLOYMENT_FILE: "deployment.yaml"  # Kubernetes YAML file
+    AWS_ACCOUNT_ID: "390844759906"
+    AWS_DEFAULT_REGION: "ap-south-1"
 
 phases:
   install:
@@ -20,27 +20,27 @@ phases:
   pre_build:
     commands:
       - echo "Configuring AWS credentials for EKS..."
-      - aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $CLUSTER_NAME
+      - aws eks update-kubeconfig --region "$AWS_DEFAULT_REGION" --name "$CLUSTER_NAME"
 
       - echo "Logging in to Amazon ECR..."
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - aws ecr get-login-password --region "$AWS_DEFAULT_REGION" | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
 
   build:
     commands:
       - echo "Building Docker image..."
-      - docker build -t $IMAGE_REPO_NAME -f Dockerfile.node .
-      - docker tag $IMAGE_REPO_NAME:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
+      - docker build -t "$IMAGE_REPO_NAME" .
+      - docker tag "$IMAGE_REPO_NAME:latest" "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
 
   post_build:
     commands:
       - echo "Pushing Docker image to Amazon ECR..."
-      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
+      - docker push "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
 
       - echo "Updating deployment file with ECR image..."
-      - sed -i "s|image: .*|image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest|" $KUBERNETES_DEPLOYMENT_FILE
+      - sed -i "s|image: .*|image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest|" "$KUBERNETES_DEPLOYMENT_FILE"
 
       - echo "Deploying to EKS..."
-      - kubectl apply -f $KUBERNETES_DEPLOYMENT_FILE
+      - kubectl apply -f "$KUBERNETES_DEPLOYMENT_FILE"
 
       - echo "Waiting for deployment to complete..."
       - kubectl rollout status deployment nginx-api-pod || kubectl get pods -o wide
