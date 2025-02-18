@@ -8,7 +8,7 @@ metadata:
 spec:
   containers:
     - name: nginx1
-      image: 390844759906>.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest  # Update with ECR path
+      image: 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest  # Update with ECR path
       imagePullPolicy: Always
       ports: 
         - containerPort: 8000  
