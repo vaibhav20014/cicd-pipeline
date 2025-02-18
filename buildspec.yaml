@@ -28,9 +28,6 @@ phases:
       - echo "Pushing Docker image to Amazon ECR..."
       - docker push 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
 
-      - echo "Updating deployment file with ECR image..."
-      - sed -i 's|image: .*|image: 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest|' deployment.yaml
-
       - echo "Deploying to EKS..."
       - kubectl apply -f deployment.yaml
 
