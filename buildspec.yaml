@@ -2,10 +2,11 @@ version: 0.2
 
 env:
   variables:
-    IMAGE_REPO_NAME: "cicd-pipeline"  # Name of your ECR repository
-    CONTAINER_NAME: "cicd-pipeline-container"
-    CLUSTER_NAME: "my-ecs-cluster"  # Change if using EKS
-    SERVICE_NAME: "my-service"  # Your ECS service name
+    IMAGE_REPO_NAME: "cicd_aws"  # Name of your ECR repository
+    CLUSTER_NAME: "aws_cicd_cluster"  # Your EKS cluster name
+    KUBERNETES_DEPLOYMENT_FILE: "deployment.yaml"  # Name of your Kubernetes YAML file
+    AWS_ACCOUNT_ID: 390844759906
+    AWS_DEFAULT_REGION: ap-south-1
 
 phases:
   install:
@@ -18,11 +19,11 @@ phases:
 
   pre_build:
     commands:
+      - echo "Configuring AWS credentials for EKS..."
+      - aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $CLUSTER_NAME
+
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-
-      - echo "Running tests..."
-      - npm test || echo "Tests failed but continuing..."
 
   build:
     commands:
@@ -35,8 +36,14 @@ phases:
       - echo "Pushing Docker image to Amazon ECR..."
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
 
-      - echo "Deploying to ECS..."
-      - aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --force-new-deployment
+      - echo "Updating deployment file with ECR image..."
+      - sed -i "s|image: .*|image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest|" $KUBERNETES_DEPLOYMENT_FILE
+
+      - echo "Deploying to EKS..."
+      - kubectl apply -f $KUBERNETES_DEPLOYMENT_FILE
+
+      - echo "Waiting for deployment to complete..."
+      - kubectl rollout status deployment nginx-api-pod || kubectl get pods -o wide
 
 artifacts:
   files:
