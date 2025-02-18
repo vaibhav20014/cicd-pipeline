@@ -1,11 +1,5 @@
 version: 0.2
 
-env:
-  variables:
-    IMAGE_REPO_NAME: "cicd_aws"  # Name of your ECR repository
-    CLUSTER_NAME: "aws_cicd_cluster"  # Your EKS cluster name
-    KUBERNETES_DEPLOYMENT_FILE: "deployment.yaml"  # Kubernetes YAML file
-
 phases:
   install:
     runtime-versions:
@@ -18,27 +12,27 @@ phases:
   pre_build:
     commands:
       - echo "Configuring AWS credentials for EKS..."
-      - aws eks update-kubeconfig --region "ap-south-1" --name "aws_cicd_cluster"
+      - aws eks update-kubeconfig --region ap-south-1 --name aws_cicd_cluster
 
       - echo "Logging in to Amazon ECR..."
-      - aws ecr get-login-password --region "ap-south-1" | docker login --username AWS --password-stdin "390844759906.dkr.ecr.ap-south-1.amazonaws.com"
+      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 390844759906.dkr.ecr.ap-south-1.amazonaws.com
 
   build:
     commands:
       - echo "Building Docker image..."
-      - docker build -t "cicd_aws" .
-      - docker tag "cicd_aws:latest" "390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest"
+      - docker build -t cicd_aws .
+      - docker tag cicd_aws:latest 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
 
   post_build:
     commands:
       - echo "Pushing Docker image to Amazon ECR..."
-      - docker push "390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest"
+      - docker push 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
 
       - echo "Updating deployment file with ECR image..."
-      - sed -i "s|image: .*|image: 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest|" "deployment.yaml"
+      - sed -i 's|image: .*|image: 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest|' deployment.yaml
 
       - echo "Deploying to EKS..."
-      - kubectl apply -f "deployment.yaml"
+      - kubectl apply -f deployment.yaml
 
       - echo "Waiting for deployment to complete..."
       - kubectl rollout status deployment nginx-api-pod || kubectl get pods -o wide
