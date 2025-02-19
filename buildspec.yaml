@@ -13,6 +13,9 @@ phases:
     commands:
       - echo "Configuring AWS credentials for EKS..."
       - aws eks update-kubeconfig --region ap-south-1 --name aws_cicd_cluster
+      
+      - echo "Adding IAM role to Kubernetes config..."
+      - kubectl create clusterrolebinding codebuild-admin-binding --clusterrole=cluster-admin --user=arn:aws:iam::390844759906:role/codebuild-cicd_aws-service-role || true
 
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 390844759906.dkr.ecr.ap-south-1.amazonaws.com
@@ -27,9 +30,6 @@ phases:
     commands:
       - echo "Pushing Docker image to Amazon ECR..."
       - docker push 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
-
-      - echo "Updating EKS authentication with mapRoles.yaml..."
-      - kubectl apply -f mapRoles.yaml  # Add this line
 
       - echo "Deploying to EKS..."
       - kubectl apply -f deployment.yaml
