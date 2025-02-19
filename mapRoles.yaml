@@ -1,0 +1,4 @@
+- rolearn: arn:aws:iam::390844759906:role/codebuild-cicd_aws-service-role
+  username: build
+  groups:
+    - system:masters
