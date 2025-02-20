@@ -32,8 +32,7 @@ phases:
       - docker push 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
 
       - echo "Deploying to EKS..."
-      - kubectl apply -f deployment.yaml --dry-run=client
-
+      - kubectl apply -f deployment.yaml
       - echo "Waiting for deployment to complete..."
       - kubectl rollout status deployment nginx-api-pod || kubectl get pods -o wide
 
