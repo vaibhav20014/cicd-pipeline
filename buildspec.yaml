@@ -28,8 +28,6 @@ phases:
 
   post_build:
     commands:
-      - echo "Pushing the Docker image..."
-      - docker push 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
 
       - echo "Verifying deployment.yaml exists before applying..."
       - if [ ! -f deployment.yaml ]; then echo "Error: deployment.yaml not found!"; exit 1; fi
