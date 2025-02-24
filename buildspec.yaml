@@ -12,9 +12,24 @@ phases:
   pre_build:
     commands:
       - echo "Configuring AWS credentials for EKS..."
+      - export AWS_ACCESS_KEY_ID=$(aws secretsmanager get-secret-value --secret-id EKS_ACCESS_KEY --query SecretString --output text | jq -r .AWS_ACCESS_KEY_ID)
+      - export AWS_SECRET_ACCESS_KEY=$(aws secretsmanager get-secret-value --secret-id EKS_SECRET_KEY --query SecretString --output text | jq -r .AWS_SECRET_ACCESS_KEY)
+      - export AWS_SESSION_TOKEN=$(aws secretsmanager get-secret-value --secret-id EKS_SESSION_TOKEN --query SecretString --output text | jq -r .AWS_SESSION_TOKEN)
+      - export AWS_REGION=ap-south-1
+      - aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
+      - aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
+      - aws configure set aws_session_token "$AWS_SESSION_TOKEN"
+      - aws configure set region "$AWS_REGION"
+
+      - echo "Updating kubeconfig for EKS..."
       - aws eks update-kubeconfig --region ap-south-1 --name aws_cicd_cluster
+
+      - echo "Verifying cluster access..."
+      - kubectl get nodes || { echo "EKS authentication failed"; exit 1; }
+
       - echo "Adding IAM role to Kubernetes config..."
       - kubectl create clusterrolebinding codebuild-admin-binding --clusterrole=cluster-admin --user=arn:aws:iam::390844759906:role/codebuild-cicd_aws-service-role || true
+
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 390844759906.dkr.ecr.ap-south-1.amazonaws.com
 
@@ -28,16 +43,25 @@ phases:
     commands:
       - echo "Pushing the Docker image..."
       - docker push 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
+      
       - echo "Applying Kubernetes deployment..."
-      - test -f deployment.yaml && kubectl apply -f deployment.yaml || { echo "Error: deployment.yaml not found!"; exit 1; }
+      - |
+        if [ ! -f deployment.yaml ]; then
+          echo "Error: deployment.yaml not found!"
+          exit 1
+        fi
+        kubectl apply -f deployment.yaml --validate=false
+
       - echo "Waiting for deployment to complete..."
-      - kubectl rollout status deployment/nginx-api-pod || {
-          echo "Deployment failed. Gathering debug info...";
-          kubectl get deployments;
-          kubectl describe deployment nginx-api-pod;
-          kubectl get pods -o wide;
-          exit 1;
-        }
+      - |
+        if ! kubectl rollout status deployment/nginx-api-pod; then
+          echo "Deployment failed. Gathering debug info..."
+          kubectl get deployments
+          kubectl describe deployment nginx-api-pod
+          kubectl get pods -o wide
+          exit 1
+        fi
+
       - echo "Deployment completed successfully!"
 
 artifacts:
