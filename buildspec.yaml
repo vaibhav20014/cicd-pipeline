@@ -13,7 +13,7 @@ phases:
     commands:
       - echo "Configuring AWS credentials for EKS..."
       - aws eks update-kubeconfig --region ap-south-1 --name aws_cicd_cluster
-      
+
       - echo "Adding IAM role to Kubernetes config..."
       - kubectl create clusterrolebinding codebuild-admin-binding --clusterrole=cluster-admin --user=arn:aws:iam::390844759906:role/codebuild-cicd_aws-service-role || true
 
@@ -25,10 +25,18 @@ phases:
       - echo "Building Docker image..."
       - docker build -t cicd_aws .
       - docker tag cicd_aws:latest 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
+
+  post_build:
+    commands:
+      - echo "Pushing the Docker image..."
+      - docker push 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
+
       - echo "Verifying deployment.yaml exists before applying..."
       - if [ ! -f deployment.yaml ]; then echo "Error: deployment.yaml not found!"; exit 1; fi
+
       - echo "Applying deployment.yaml..."
       - kubectl apply -f deployment.yaml || { echo "Apply failed"; exit 1; }
+
       - echo "Waiting for deployment to complete..."
       - kubectl rollout status deployment/nginx-api-pod || {
           echo "Deployment failed. Gathering debug info...";
@@ -37,18 +45,8 @@ phases:
           kubectl get pods -o wide;
           exit 1;
         }
+
       - echo "Deployment completed successfully!"
-
-    post_build:
-    commands:
-      - echo Pushing the Docker image...
-      - docker tag cicd_aws:latest 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
-      - docker push 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
-      - echo "Verifying deployment.yaml exists before applying..."
-      - if [ -f deployment.yaml ]; then kubectl apply -f deployment.yaml; else echo "deployment.yaml not found"; fi
-
-      - echo "Waiting for deployment to complete..."
-      - kubectl rollout status deployment nginx-api-pod || kubectl get pods -o wide
 
 artifacts:
   files:
