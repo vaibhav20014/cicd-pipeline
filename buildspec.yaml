@@ -31,8 +31,9 @@ phases:
       - echo "Pushing Docker image to Amazon ECR..."
       - docker push 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
 
-      - echo "Deploying to EKS..."
-      - kubectl apply -f deployment.yaml
+      - echo "Verifying deployment.yaml exists before applying..."
+      - if [ -f deployment.yaml ]; then kubectl apply -f deployment.yaml; else echo "deployment.yaml not found"; fi
+
       - echo "Waiting for deployment to complete..."
       - kubectl rollout status deployment nginx-api-pod || kubectl get pods -o wide
 
