@@ -28,16 +28,25 @@ phases:
     commands:
       - echo "Pushing the Docker image..."
       - docker push 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
+      
       - echo "Applying Kubernetes deployment..."
-      - test -f deployment.yaml && kubectl apply -f deployment.yaml || { echo "Error: deployment.yaml not found!"; exit 1; }
+      - |
+        if [ ! -f deployment.yaml ]; then
+          echo "Error: deployment.yaml not found!"
+          exit 1
+        fi
+        kubectl apply -f deployment.yaml
+
       - echo "Waiting for deployment to complete..."
-      - kubectl rollout status deployment/nginx-api-pod || {
-          echo "Deployment failed. Gathering debug info...";
-          kubectl get deployments;
-          kubectl describe deployment nginx-api-pod;
-          kubectl get pods -o wide;
-          exit 1;
-        }
+      - |
+        if ! kubectl rollout status deployment/nginx-api-pod; then
+          echo "Deployment failed. Gathering debug info..."
+          kubectl get deployments
+          kubectl describe deployment nginx-api-pod
+          kubectl get pods -o wide
+          exit 1
+        fi
+
       - echo "Deployment completed successfully!"
 
 artifacts:
