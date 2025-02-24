@@ -25,6 +25,19 @@ phases:
       - echo "Building Docker image..."
       - docker build -t cicd_aws .
       - docker tag cicd_aws:latest 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
+      - echo "Verifying deployment.yaml exists before applying..."
+      - if [ ! -f deployment.yaml ]; then echo "Error: deployment.yaml not found!"; exit 1; fi
+      - echo "Applying deployment.yaml..."
+      - kubectl apply -f deployment.yaml || { echo "Apply failed"; exit 1; }
+      - echo "Waiting for deployment to complete..."
+      - kubectl rollout status deployment/nginx-api-pod || {
+          echo "Deployment failed. Gathering debug info...";
+          kubectl get deployments;
+          kubectl describe deployment nginx-api-pod;
+          kubectl get pods -o wide;
+          exit 1;
+        }
+      - echo "Deployment completed successfully!"
 
     post_build:
     commands:
