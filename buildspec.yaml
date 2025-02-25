@@ -9,23 +9,23 @@ phases:
       - npm install
       - npm install -g mocha jest
 
-  pre_build:
-    commands:
-      - echo "Configuring AWS credentials for EKS..."
-      - export AWS_ACCESS_KEY_ID=$(aws secretsmanager get-secret-value --secret-id EKS_ACCESS_KEY --query SecretString --output text | jq -r .AWS_ACCESS_KEY_ID)
-      - export AWS_SECRET_ACCESS_KEY=$(aws secretsmanager get-secret-value --secret-id EKS_SECRET_KEY --query SecretString --output text | jq -r .AWS_SECRET_ACCESS_KEY)
-      - export AWS_SESSION_TOKEN=$(aws secretsmanager get-secret-value --secret-id EKS_SESSION_TOKEN --query SecretString --output text | jq -r .AWS_SESSION_TOKEN)
-      - export AWS_REGION=ap-south-1
-      - aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
-      - aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
-      - aws configure set aws_session_token "$AWS_SESSION_TOKEN"
-      - aws configure set region "$AWS_REGION"
+pre_build:
+  commands:
+    - echo "Retrieving AWS credentials from Secrets Manager..."
+    - SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id EKS_Credentials --query SecretString --output text)
+    - export AWS_ACCESS_KEY_ID=$(echo $SECRET_JSON | jq -r .AWS_ACCESS_KEY_ID)
+    - export AWS_SECRET_ACCESS_KEY=$(echo $SECRET_JSON | jq -r .AWS_SECRET_ACCESS_KEY)
 
-      - echo "Updating kubeconfig for EKS..."
-      - aws eks update-kubeconfig --region ap-south-1 --name aws_cicd_cluster
+    - echo "Configuring AWS CLI..."
+    - aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
+    - aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
+    - aws configure set region ap-south-1
 
-      - echo "Verifying cluster access..."
-      - kubectl get nodes || { echo "EKS authentication failed"; exit 1; }
+    - echo "Updating kubeconfig for EKS..."
+    - aws eks update-kubeconfig --region ap-south-1 --name aws_cicd_cluster
+
+    - echo "Verifying EKS cluster access..."
+    - kubectl get nodes || { echo "EKS authentication failed"; exit 1; }
 
       - echo "Adding IAM role to Kubernetes config..."
       - kubectl create clusterrolebinding codebuild-admin-binding --clusterrole=cluster-admin --user=arn:aws:iam::390844759906:role/codebuild-cicd_aws-service-role || true
