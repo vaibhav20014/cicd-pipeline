@@ -8,6 +8,12 @@ phases:
       - echo "Installing dependencies..."
       - npm install
       - npm install -g mocha jest
+      - echo "Installing AWS CLI, jq, and kubectl..."
+      - yum install -y jq
+      - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      - chmod +x kubectl
+      - mv kubectl /usr/local/bin/
+      - echo "Installation completed."
 
   pre_build:
     commands:
@@ -21,6 +27,9 @@ phases:
       - aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
       - aws configure set region ap-south-1
 
+      - echo "Checking AWS credentials..."
+      - aws sts get-caller-identity || { echo "Invalid AWS credentials"; exit 1; }
+
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 390844759906.dkr.ecr.ap-south-1.amazonaws.com
       - if [ $? -ne 0 ]; then echo "ECR login failed!"; exit 1; fi
@@ -32,7 +41,7 @@ phases:
       - echo "Verifying EKS cluster access..."
       - kubectl get nodes || { echo "EKS authentication failed"; exit 1; }
 
-      - echo "Adding IAM role to Kubernetes config..."
+      - echo "Ensuring IAM role has Kubernetes access..."
       - kubectl create clusterrolebinding codebuild-admin-binding --clusterrole=cluster-admin --user=arn:aws:iam::390844759906:role/codebuild-cicd_aws-service-role || true
 
   build:
