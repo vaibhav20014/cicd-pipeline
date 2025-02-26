@@ -8,42 +8,58 @@ phases:
       - echo "Installing dependencies..."
       - npm install
       - npm install -g mocha jest
+      - echo "Installing AWS CLI, jq, and kubectl..."
+      - yum install -y jq
+      - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      - chmod +x kubectl
+      - mv kubectl /usr/local/bin/
+      - echo "Installation completed."
 
   pre_build:
     commands:
-      - echo "Configuring AWS credentials for EKS..."
-      - export AWS_ACCESS_KEY_ID=$(aws secretsmanager get-secret-value --secret-id EKS_ACCESS_KEY --query SecretString --output text | jq -r .AWS_ACCESS_KEY_ID)
-      - export AWS_SECRET_ACCESS_KEY=$(aws secretsmanager get-secret-value --secret-id EKS_SECRET_KEY --query SecretString --output text | jq -r .AWS_SECRET_ACCESS_KEY)
-      - export AWS_SESSION_TOKEN=$(aws secretsmanager get-secret-value --secret-id EKS_SESSION_TOKEN --query SecretString --output text | jq -r .AWS_SESSION_TOKEN)
-      - export AWS_REGION=ap-south-1
+      - echo "Retrieving AWS credentials from Secrets Manager..."
+      - SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id EKS_Credentials --query SecretString --output text)
+      - export AWS_ACCESS_KEY_ID=$(echo $SECRET_JSON | jq -r .AWS_ACCESS_KEY_ID)
+      - export AWS_SECRET_ACCESS_KEY=$(echo $SECRET_JSON | jq -r .AWS_SECRET_ACCESS_KEY)
+
+      - echo "Configuring AWS CLI..."
       - aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
       - aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
-      - aws configure set aws_session_token "$AWS_SESSION_TOKEN"
-      - aws configure set region "$AWS_REGION"
+      - aws configure set region ap-south-1
 
-      - echo "Updating kubeconfig for EKS..."
-      - aws eks update-kubeconfig --region ap-south-1 --name aws_cicd_cluster
-
-      - echo "Verifying cluster access..."
-      - kubectl get nodes || { echo "EKS authentication failed"; exit 1; }
-
-      - echo "Adding IAM role to Kubernetes config..."
-      - kubectl create clusterrolebinding codebuild-admin-binding --clusterrole=cluster-admin --user=arn:aws:iam::390844759906:role/codebuild-cicd_aws-service-role || true
+      - echo "Checking AWS credentials..."
+      - aws sts get-caller-identity || { echo "Invalid AWS credentials"; exit 1; }
 
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 390844759906.dkr.ecr.ap-south-1.amazonaws.com
+      - if [ $? -ne 0 ]; then echo "ECR login failed!"; exit 1; fi
+
+      - echo "Updating kubeconfig for EKS..."
+      - aws eks update-kubeconfig --region ap-south-1 --name aws_cicd_cluster
+      - if [ $? -ne 0 ]; then echo "EKS authentication failed!"; exit 1; fi
+
+      - echo "Verifying EKS cluster access..."
+      - kubectl get nodes || { echo "EKS authentication failed"; exit 1; }
+
+      - echo "Ensuring IAM role has Kubernetes access..."
+      - kubectl create clusterrolebinding codebuild-admin-binding --clusterrole=cluster-admin --user=arn:aws:iam::390844759906:role/codebuild-cicd_aws-service-role || true
 
   build:
     commands:
       - echo "Building Docker image..."
       - docker build -t cicd_aws .
+      - if [ $? -ne 0 ]; then echo "Docker build failed!"; exit 1; fi
+
+      - echo "Tagging Docker image..."
       - docker tag cicd_aws:latest 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
+      - if [ $? -ne 0 ]; then echo "Docker tagging failed!"; exit 1; fi
 
   post_build:
     commands:
       - echo "Pushing the Docker image..."
       - docker push 390844759906.dkr.ecr.ap-south-1.amazonaws.com/cicd_aws:latest
-      
+      - if [ $? -ne 0 ]; then echo "Docker push failed!"; exit 1; fi
+
       - echo "Applying Kubernetes deployment..."
       - |
         if [ ! -f deployment.yaml ]; then
@@ -51,16 +67,17 @@ phases:
           exit 1
         fi
         kubectl apply -f deployment.yaml --validate=false
+        if [ $? -ne 0 ]; then echo "Kubernetes deployment failed!"; exit 1; fi
 
       - echo "Waiting for deployment to complete..."
       - |
-        if ! kubectl rollout status deployment/nginx-api-pod; then
+        kubectl rollout status deployment/nginx-api-pod || {
           echo "Deployment failed. Gathering debug info..."
           kubectl get deployments
           kubectl describe deployment nginx-api-pod
           kubectl get pods -o wide
           exit 1
-        fi
+        }
 
       - echo "Deployment completed successfully!"
 
